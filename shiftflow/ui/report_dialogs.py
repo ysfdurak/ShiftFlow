@@ -178,7 +178,7 @@ class OpenReportsDialog(QDialog):
             self.tree.addTopLevelItem(top)
             for sh in wb.sheets:
                 d, score, hdr = rp.recognize(defs, wb, sh)
-                it = QTreeWidgetItem([f"{sh.name}  ·  {fmt_n(sh.n_rows)} satır", f"✓ {d.name}" if d else ""])
+                it = QTreeWidgetItem([f"{sh.name}  ·  {fmt_n(sh.n_rows)} satır (başlık satırları dahil)", f"✓ {d.name}" if d else ""])
                 it.setData(0, Qt.UserRole, (wb, sh, d, hdr))
                 if d:
                     it.setForeground(1, QColor("#1d6b3a"))
@@ -655,8 +655,11 @@ class RunSettingsDialog(QDialog):
             self.dir.setText(d)
 
     def _preview(self):
+        # Örnek, ana penceredeki seçili dönemle yazılır (önceden hep bugünün tarihi görünüyordu).
+        bar = getattr(self.parent(), "period_bar", None)
+        period = bar.period() if bar is not None else None
         self.example.setText("Örnek: " + format_file_name(self.name.text() or DEFAULT_FILE_NAME,
-                                                          self.wf.name or "Rapor", datetime.now()) + ".xlsx")
+                                                          self.wf.name or "Rapor", datetime.now(), period) + ".xlsx")
 
     def settings_dict(self):
         return {"output_dir": self.dir.text().strip(), "file_name": self.name.text().strip() or DEFAULT_FILE_NAME,

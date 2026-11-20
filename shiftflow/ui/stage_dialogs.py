@@ -724,7 +724,9 @@ class ReportSettingsDialog(QDialog):
             self.dir.setText(d)
 
     def _preview(self):
-        p = pr.make_period(date.today(), self.shifts[0]["name"], self.shifts) if self.shifts else None
+        bar = getattr(self.parent(), "period_bar", None)
+        p = bar.period() if bar is not None else (
+            pr.make_period(date.today(), self.shifts[0]["name"], self.shifts) if self.shifts else None)
         self.example.setText("Örnek: " + format_file_name(self.name.text() or DEFAULT_FILE_NAME, self.wf.name or "Rapor",
                                                           datetime.now(), p) + ".xlsx")
 
