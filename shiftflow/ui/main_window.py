@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QTableWidgetItem,
     QTabWidget,
     QToolBar,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -52,6 +53,62 @@ from .source_dialogs import BindSourcesDialog, ExportDialog, ImportDialog, ask_t
 AUTOSAVE_MS = 5000  # kaydedilmemiş değişiklikler en geç bu sürede yedeklenir
 ORIGIN_TAGS = {"source": "Kaynak", "join": "Birleştirme", "append": "Alt alta", "group": "Özet",
                "pivot": "Pivot", "copy": "Kopya"}
+
+
+EMPTY_HINT = (
+    "<h2 style='color:#1f2a33'>Başlayalım</h2>"
+    "<p style='font-size:14px'>Her gün Excel'de elle yaptığınız rapor işini bir kez tanımlayın, sonra tek tıkla tekrarlayın.</p>"
+    "<p style='font-size:14px;line-height:170%'>"
+    "<a href='excel'>Açık Excel'den rapor al</a> &nbsp;·&nbsp; <a href='file'>Dosya aç</a> &nbsp;·&nbsp; "
+    "<a href='flow'>Kayıtlı iş akışını aç</a></p>"
+    "<p style='font-size:14px'>İlk kez mi kullanıyorsunuz? <a href='sample'>Örnekle deneyin</a> "
+    "(2 dakika) ya da <a href='tour'>ekranı adım adım tanıyın</a>.</p>"
+    "<p style='color:#6b7680'>Excel'den kopyaladığınız tabloyu Ctrl+V ile yapıştırabilir veya dosyayı buraya "
+    "sürükleyebilirsiniz. Ne yapacağınızı bilmiyorsanız <b>Ctrl+K</b> · Yardım <b>F1</b></p>"
+)
+
+
+def short_step_label(label: str, width: int = 38) -> str:
+    """Adım listesinde tek satırlık ad: formülün kendisi değil adı ("Hesapla: Gerçekleşme %").
+    Tam metin ipucunda ve adım seçilince altta görünür."""
+    head, sep, rest = label.partition(":")
+    if sep and "=" in rest:
+        rest = rest.split("=", 1)[0]
+    text = " ".join((head + sep + rest).split())
+    return text if len(text) <= width else text[: width - 1].rstrip() + "…"
+
+
+def main_tour_steps(w) -> list:
+    """Ekran rehberinin adımları: (hedef widget'ı döndüren fonksiyon, başlık, metin, hazırlık)."""
+    def ribbon_tab(title):
+        return lambda: w.ribbon.setCurrentWidget(w.ribbon_bars[title])
+
+    def action_button(title, action):
+        return lambda: w.ribbon_bars[title].widgetForAction(action)
+    return [
+        (action_button("Giriş", w.a_open_excel), "1 · Veriyi alın",
+         "WMS raporunu Excel'de açın ve <b>Açık Excel'den al</b>'a basın. Kaydedilmemiş kitaplar da görünür. "
+         "Dosyadan almak için <b>Dosya aç</b>; Excel'den kopyaladığınız tablo için <b>Ctrl+V</b>.", ribbon_tab("Giriş")),
+        (lambda: w.ds_list, "2 · Veri kümeleri",
+         "Aldığınız her rapor burada bir satırdır. Birini seçince ortada tablosu açılır. "
+         "Gruplama, pivot ve birleştirme sonuçları da buraya yeni küme olarak eklenir.", None),
+        (lambda: w.table.horizontalHeader() if w.table.isVisible() else w.empty_hint, "3 · İşlem ekleyin",
+         "Sütun başlığına <b>sağ tıklayın</b>: sırala, filtrele, yeniden adlandır, kaldır… "
+         "Diğer işlemler üstteki sekmelerdedir (<b>Dönüştür</b>, <b>Temizle</b>, <b>Formül</b>). "
+         "Kaynak dosyanız hiç değişmez.", ribbon_tab("Dönüştür")),
+        (lambda: w.step_list, "4 · Adımlar",
+         "Yaptığınız her işlem burada sırayla durur. Bir adıma tıklayınca o andaki hâli görürsünüz; "
+         "kutucukla geçici olarak kapatabilir, çift tıklayıp düzenleyebilirsiniz.", None),
+        (lambda: w.build_button, "5 · Kaydedin, ertesi gün tek tık",
+         "<b>Ctrl+S</b> ile iş akışını kaydedin. Ertesi gün raporları Excel'de açıp <b>▶ Rapor oluştur</b>'a "
+         "(F9) basın: aynı adımlar yeni veriyle çalışır ve Excel dosyası oluşur.", None),
+        (lambda: w.period_bar, "6 · Dönem",
+         "Rapor hangi gün ve vardiya için? Saate göre kendiliğinden seçilir; değiştirirseniz yanında "
+         "<b>↺</b> çıkar, ona basınca otomatiğe döner.", None),
+        (lambda: w.palette_button, "7 · Takılırsanız",
+         "Bir işlemin yerini bilmiyorsanız <b>İşlem ara</b> (Ctrl+K) ile yazarak bulun (ör. \"düşeyara\", \"boş\"). "
+         "Her pencerede <b>F1</b> o konunun yardımını açar. Bu rehberi <b>?</b> düğmesiyle yeniden açabilirsiniz.", None),
+    ]
 
 
 class MainWindow(QMainWindow):
@@ -144,14 +201,10 @@ class MainWindow(QMainWindow):
         self.messages.setWordWrap(True)
         self.messages.setTextInteractionFlags(Qt.TextSelectableByMouse)
         v.addWidget(self.messages)
-        self.empty_hint = QLabel(
-            "<h2>ShiftFlow Data Studio</h2>"
-            "<p>Başlamak için <b>Dosya aç</b> ile bir Excel/CSV raporu seçin, Excel'den kopyaladığınız "
-            "tabloyu <b>Ctrl+V</b> ile yapıştırın veya dosyayı pencereye sürükleyin.</p>"
-            "<p>Kayıtlı bir iş akışınız varsa <b>Akış aç</b> ile açıp yeni raporlarla çalıştırabilirsiniz.</p>"
-            "<p style='color:#6b7680'>Yardım: <b>F1</b> · İşlem ara: <b>Ctrl+K</b></p>"
-        )
+        self.empty_hint = QLabel(EMPTY_HINT)
         self.empty_hint.setAlignment(Qt.AlignCenter)
+        self.empty_hint.setTextFormat(Qt.RichText)
+        self.empty_hint.linkActivated.connect(self._empty_link)
         self.empty_hint.setObjectName("emptyHint")
         v.addWidget(self.empty_hint, 1)
         self.setCentralWidget(central)
@@ -162,6 +215,7 @@ class MainWindow(QMainWindow):
         dl.setContentsMargins(4, 4, 4, 4)
         self.ds_list = QListWidget()
         self.ds_list.setWordWrap(True)
+        self.ds_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.ds_list.currentItemChanged.connect(self._ds_changed)
         self.ds_list.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ds_list.customContextMenuRequested.connect(self.ds_menu)
@@ -178,6 +232,7 @@ class MainWindow(QMainWindow):
         sl.setContentsMargins(4, 4, 4, 4)
         self.step_list = QListWidget()
         self.step_list.setWordWrap(True)
+        self.step_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.step_list.currentRowChanged.connect(self._step_changed)
         self.step_list.itemDoubleClicked.connect(lambda *_: self.edit_step())
         self.step_list.itemChanged.connect(self._step_toggled)
@@ -226,6 +281,10 @@ class MainWindow(QMainWindow):
         self.resizeDocks([dock, dock2], [260, 420], Qt.Vertical)
         dock3.setMinimumWidth(250)
         self.col_dock = dock3
+        # Sütun bilgisi başlangıçta kapalı: tablo geniş kalsın. Görünüm menüsünden veya sütun
+        # başlığına sağ tıklayıp açılır; açık bırakılırsa sonraki açılışta da açık gelir.
+        dock3.setVisible(self.settings.value("col_info_visible", False) in (True, "true"))
+        dock3.toggleViewAction().toggled.connect(lambda v: self.settings.setValue("col_info_visible", v))
 
         self._actions()
         self.session.set_period(self.period_bar.period())
@@ -320,24 +379,42 @@ class MainWindow(QMainWindow):
         self.a_group = A("Grupla", lambda: self.add_derived("group"), None, "Grupla ve özetle")
         self.a_pivot = A("Pivot", lambda: self.add_derived("pivot"), None, "Pivot tablo oluştur")
 
-        # Üst şerit: her zaman görünen işler (dar ekranda da sığar)
-        tb = QToolBar("Ana")
-        tb.setObjectName("tb_main")
-        tb.setMovable(False)
-        tb.setToolButtonStyle(Qt.ToolButtonTextOnly)
-        tb.addAction(self.a_build)
-        tb.widgetForAction(self.a_build).setObjectName("buildButton")
+        # Sade düzen (3.11): ayrı bir üst araç çubuğu yok. Her zaman gereken işler (Rapor oluştur, dönem,
+        # İşlem ara, geri al/yinele) şeridin sekme satırına yerleşir; tablonun üstünde iki satır kalır.
+        def tool(action, name=None, text=None):
+            b = QToolButton()
+            b.setDefaultAction(action)
+            b.setToolButtonStyle(Qt.ToolButtonTextOnly)
+            b.setAutoRaise(True)
+            if text:
+                b.setText(text)
+            if name:
+                b.setObjectName(name)
+            return b
+        self.build_button = tool(self.a_build, "buildButton")
+        left = QWidget()
+        ll = QHBoxLayout(left)
+        ll.setContentsMargins(4, 2, 10, 2)
+        ll.addWidget(self.build_button)
+        right = QWidget()
+        rl = QHBoxLayout(right)
+        rl.setContentsMargins(6, 0, 6, 0)
+        rl.setSpacing(4)
         self.period_bar = sdlg.PeriodBar(lambda: self.session.shifts, lambda: self.session.auto_period(), self)
         self.period_bar.changed.connect(self._period_changed)
-        tb.addWidget(self.period_bar)
-        tb.addSeparator()
-        tb.addAction(self.a_palette)
-        tb.widgetForAction(self.a_palette).setObjectName("paletteButton")
-        tb.addSeparator()
-        for a in (self.a_undo, self.a_redo):
-            tb.addAction(a)
-        self.addToolBar(tb)
-        self.addToolBarBreak()
+        rl.addWidget(self.period_bar)
+        self.palette_button = tool(self.a_palette, "paletteButton")
+        rl.addWidget(self.palette_button)
+        self.undo_button = tool(self.a_undo)
+        self.redo_button = tool(self.a_redo)
+        rl.addWidget(self.undo_button)
+        rl.addWidget(self.redo_button)
+        self.tour_button = QToolButton()
+        self.tour_button.setText("?")
+        self.tour_button.setObjectName("tourButton")
+        self.tour_button.setToolTip("Rehber: ekranı adım adım tanıt")
+        self.tour_button.clicked.connect(self.start_tour)
+        rl.addWidget(self.tour_button)
         # Sekmeli şerit (Excel gibi): her sekmede bir grup işlem
         sa = self.step_actions
         ex = self.extra_step_actions
@@ -358,6 +435,8 @@ class MainWindow(QMainWindow):
         self.ribbon = QTabWidget()
         self.ribbon.setObjectName("ribbon")
         self.ribbon.setDocumentMode(True)
+        self.ribbon.setCornerWidget(left, Qt.TopLeftCorner)
+        self.ribbon.setCornerWidget(right, Qt.TopRightCorner)
         self.ribbon_bars = {}
         for title, acts in groups:
             bar = QToolBar(title)
@@ -369,7 +448,11 @@ class MainWindow(QMainWindow):
             self.ribbon_bars[title] = bar
         self.ribbon.setCurrentIndex(int(self.settings.value("ribbon_tab", 1) or 1))
         self.ribbon.currentChanged.connect(lambda i: self.settings.setValue("ribbon_tab", i))
-        self.ribbon.setFixedHeight(self.ribbon.tabBar().sizeHint().height() + 40)
+        head = max(self.ribbon.tabBar().sizeHint().height(), left.sizeHint().height(), right.sizeHint().height())
+        self.ribbon.setFixedHeight(head + 40)
+        # Otomasyon sekmesi gelişmiş kullanıcı içindir; Görünüm menüsünden açılır.
+        self._automation_tab = self.ribbon.indexOf(self.ribbon_bars["Otomasyon"])
+        self.ribbon.setTabVisible(self._automation_tab, self.settings.value("show_automation", False) in (True, "true"))
         rib_tb = QToolBar("Şerit")
         rib_tb.setObjectName("tb_ribbon")
         rib_tb.setMovable(False)
@@ -409,9 +492,15 @@ class MainWindow(QMainWindow):
             o.addAction(a)
         vm = m.addMenu("&Görünüm")
         vm.addAction(self.col_dock.toggleViewAction())
+        self.a_show_automation = QAction("Otomasyon sekmesi", self, checkable=True)
+        self.a_show_automation.setChecked(self.ribbon.isTabVisible(self._automation_tab))
+        self.a_show_automation.toggled.connect(self._toggle_automation_tab)
+        vm.addAction(self.a_show_automation)
         h = m.addMenu("&Yardım")
+        h.addAction(A("Ekran rehberi (adım adım)", self.start_tour))
+        h.addAction(A("Örnekle dene", self.open_sample, None, "Hazır örnek vardiya verisi ve iş akışıyla dene"))
         h.addAction(A("Kullanım kılavuzu", lambda: help_ui.show_help(self), "F1"))
-        h.addAction(A("Hoş geldiniz rehberi", lambda: help_ui.WelcomeDialog(self).exec()))
+        h.addAction(A("Hoş geldiniz", lambda: self._welcome()))
         h.addSeparator()
         h.addAction(A("Hakkında", self.about))
         self.data_actions = list(self.step_actions.values()) + [self.a_join, self.a_append, self.a_group,
@@ -446,19 +535,25 @@ class MainWindow(QMainWindow):
                         tag = "Arşiv: " + describe_range(spec.archive.get("range"))
                     elif sio.is_pattern(spec.path):
                         tag = "Klasör: " + os.path.basename(spec.path)
-                text = f"{name}\n   {tag} · {fmt_n(n)} satır"
+                # Uzun rapor adı ("Rapor: WMS Toplama Performans Raporu") ipucunda; listede kısa tür kalır.
+                short = "Rapor" if tag.startswith("Rapor: ") else tag
+                text = f"{name}\n   {short} · {fmt_n(n)} satır"
                 if ds.steps:
                     text += f" · {len(ds.steps)} adım"
+                detail = tag
                 err = False
             except ShiftFlowError:
                 text = f"{name}\n   ✖ hata var"
+                detail = ""
                 err = True
             it = QListWidgetItem(text)
             it.setData(Qt.UserRole, name)
             if err:
                 it.setForeground(QColor("#a32020"))
+            tips = [detail] if detail else []
             if ds.origin.inputs:
-                it.setToolTip("Girdi: " + ", ".join(ds.origin.inputs))
+                tips.append("Girdi: " + ", ".join(ds.origin.inputs))
+            it.setToolTip("\n".join(tips))
             self.ds_list.addItem(it)
             if name == self.current:
                 self.ds_list.setCurrentItem(it)
@@ -478,7 +573,7 @@ class MainWindow(QMainWindow):
         for i, st in enumerate(statuses):
             step = steps[i - 1] if 0 < i <= len(steps) else None
             prefix = "▸ " if i == 0 else f"{i}. "
-            text = prefix + st.label
+            text = prefix + short_step_label(st.label)
             if step is not None and not step.enabled:
                 text += "\n   kapalı — veri değişmeden geçer"
             elif st.error:
@@ -1081,6 +1176,8 @@ class MainWindow(QMainWindow):
         m.addAction("Boş olanları çıkar", lambda: self.quick_step(
             "filter", {"conditions": [{"column": col, "op": "not_empty"}], "mode": "and"}))
         m.addSeparator()
+        m.addAction("Değer dağılımı ve sütun bilgisi", lambda: (self.col_dock.show(), self.value_distribution(col)))
+        m.addSeparator()
         m.addAction("Yeniden adlandır…", lambda: self._rename_col(col))
         m.addAction("Sütunu kaldır", lambda: self.quick_step("remove", {"columns": [col]}))
         m.addAction("Tip dönüştür…", lambda: self.add_step("convert", preset=col))
@@ -1240,11 +1337,71 @@ class MainWindow(QMainWindow):
             logging.warning("Otomatik yedek alınamadı: %s", type(exc).__name__)
 
     def first_run(self):
-        """İlk açılışta kısa rehber (bir kez)."""
+        """İlk açılışta karşılama (bir kez): örnekle dene, ekran rehberi veya kendi verisiyle başla."""
         if self.settings.value("welcome_shown", False) in (True, "true"):
             return
         self.settings.setValue("welcome_shown", True)
-        help_ui.WelcomeDialog(self).exec()
+        self._welcome()
+
+    def _welcome(self):
+        d = help_ui.WelcomeDialog(self)
+        d.exec()
+        if d.choice == "sample":
+            self.open_sample(then_tour=True)
+        elif d.choice == "tour":
+            self.start_tour()
+        elif d.choice == "excel":
+            self.open_from_excel()
+        elif d.choice == "file":
+            self.open_file()
+
+    def _empty_link(self, link: str):
+        {"excel": self.open_from_excel, "file": self.open_file, "sample": self.open_sample,
+         "flow": self.open_workflow, "tour": self.start_tour, "help": lambda: help_ui.show_help(self)}.get(
+            link, lambda: None)()
+
+    def _toggle_automation_tab(self, on: bool):
+        self.ribbon.setTabVisible(self._automation_tab, on)
+        self.settings.setValue("show_automation", on)
+
+    def start_tour(self):
+        from .tour import Tour
+        self._tour = Tour(self, main_tour_steps(self))
+        self._tour.start()
+
+    def open_sample(self, then_tour=False):
+        """Hazır örnek: sentetik vardiya verisi + iş akışı. Dosya olarak kaydedilmez (Ctrl+S farklı kaydet sorar)."""
+        path = help_ui.sample_workflow()
+        if not path:
+            info(self, "Örnek dosyalar bulunamadı (ornekler klasörü). Kendi raporunuzla başlayabilirsiniz.")
+            return
+        if not self._confirm_discard():
+            return
+        try:
+            with busy():
+                self.session.load_workflow(path)
+                first_day = None
+                for name, spec in self.session.workflow.sources.items():
+                    df = sio.read_source(spec.path, spec.sheet, spec.header)
+                    self.session.bind_source(name, df, path=spec.path, sheet=spec.sheet, header=spec.header)
+                    for c in df.columns:
+                        if first_day is None and str(df[c].dtype).startswith("datetime") and df[c].notna().any():
+                            first_day = df[c].min().date()
+        except ShiftFlowError as exc:
+            show_error(self, exc)
+            return
+        self.workflow_path = None
+        self.session.archive = self.archive
+        self.current, self.view_step = None, None
+        self.period_bar.reload_shifts()
+        if first_day is not None:  # örnek veri geçmiş bir güne ait: dönem o güne alınır
+            from ..engine import periods as pr
+            self.period_bar.set_period(first_day, pr.WHOLE_DAY)
+        busiest = max(self.session.workflow.datasets.values(), key=lambda d: len(d.steps), default=None)
+        self.refresh_all(busiest.name if busiest is not None else None)
+        self.statusBar().showMessage("Örnek iş akışı açıldı. Sol altta adımlara tıklayarak her adımın sonucunu görün.", 12000)
+        if then_tour:
+            QTimer.singleShot(300, self.start_tour)
 
     def offer_recovery(self) -> bool:
         """Açılışta: önceki oturumdan kalan kaydedilmemiş iş akışını geri yüklemeyi önerir."""

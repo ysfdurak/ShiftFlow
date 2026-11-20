@@ -41,6 +41,17 @@ def docs_dir() -> str:
     return cands[-1]
 
 
+def sample_workflow() -> str | None:
+    """Program klasöründeki örnek iş akışı (ornekler/ornek_vardiya_akisi.json); yoksa None."""
+    base = getattr(sys, "_MEIPASS", None)
+    here = os.path.dirname(os.path.abspath(__file__))
+    for root in ([base] if base else []) + [os.path.normpath(os.path.join(here, "..", ".."))]:
+        path = os.path.join(root, "ornekler", "ornek_vardiya_akisi.json")
+        if os.path.exists(path):
+            return path
+    return None
+
+
 def load_guide() -> str:
     try:
         with open(os.path.join(docs_dir(), GUIDE), encoding="utf-8") as fh:
@@ -115,39 +126,51 @@ def show_help(parent, key: str | None = None):
 
 
 class WelcomeDialog(QDialog):
-    """İlk açılışta kısa rehber."""
+    """İlk açılışta karşılama: kişi ne yapmak istediğini seçer (`choice`)."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("ShiftFlow'a hoş geldiniz")
-        self.resize(620, 430)
+        self.resize(600, 420)
+        self.choice = None
         lay = QVBoxLayout(self)
         t = QLabel(
             "<h2>ShiftFlow Data Studio</h2>"
-            "<p>Her gün Excel'de elle yaptığınız rapor işlemlerini <b>bir kez</b> tanımlayın, sonra tek tıkla "
-            "tekrarlayın.</p>"
-            "<ol>"
-            "<li><b>Veriyi alın:</b> Giriş sekmesi → <i>Açık Excel'den al</i>, <i>Dosya aç</i> veya Ctrl+V.</li>"
-            "<li><b>İşlem ekleyin:</b> Sütun başlığına sağ tıklayın veya Dönüştür/Formül sekmelerini kullanın. "
-            "Ne arayacağınızı bilmiyorsanız <b>Ctrl+K</b>.</li>"
-            "<li><b>Excel formülleriniz varsa:</b> Formül sekmesi → <i>Excel'deki formüllü sütunları al</i>.</li>"
-            "<li><b>Kaydedin:</b> Ctrl+S. Ertesi gün raporları Excel'de açıp <b>▶ Rapor oluştur</b> (F9).</li>"
-            "</ol>"
-            "<p>Veriler yalnızca bu bilgisayarda işlenir; kaynak dosyalarınız değiştirilmez. "
-            "Her pencerede <b>F1</b> ilgili yardımı açar.</p>")
+            "<p>Her gün Excel'de elle yaptığınız rapor işini (filtre, formül, DÜŞEYARA, pivot) <b>bir kez</b> "
+            "tanımlarsınız; ertesi gün raporları açıp <b>▶ Rapor oluştur</b>'a basarsınız.</p>"
+            "<p>Veriler yalnız bu bilgisayarda işlenir, kaynak dosyalarınız değişmez.</p>"
+            "<p><b>Nasıl başlamak istersiniz?</b></p>")
         t.setWordWrap(True)
         t.setTextFormat(Qt.RichText)
-        lay.addWidget(t, 1)
+        lay.addWidget(t)
+        options = [
+            ("sample", "Örnekle dene (önerilir, 2 dakika)",
+             "Hazır vardiya verisi ve iş akışı açılır, ardından ekran adım adım tanıtılır."),
+            ("excel", "Açık Excel'deki raporumla başla", "WMS raporunu Excel'de açtıysanız buradan alın."),
+            ("file", "Dosyadan başla", "Bilgisayardaki bir Excel veya CSV dosyasını seçin."),
+            ("tour", "Önce ekranı tanıt", "Veri yüklemeden ekranın bölümlerini gösterir."),
+        ]
+        for key, title, sub in options:
+            b = QPushButton(f"{title}\n{sub}")
+            b.setObjectName("welcomeOption")
+            b.setStyleSheet("QPushButton#welcomeOption { text-align: left; padding: 8px 12px; }")
+            b.clicked.connect(lambda _=False, k=key: self._pick(k))
+            lay.addWidget(b)
+            if key == "sample":
+                b.setDefault(True)
         row = QHBoxLayout()
-        self.b_guide = QPushButton("Kılavuzu aç")
+        self.b_guide = QPushButton("Kullanım kılavuzu")
         self.b_guide.clicked.connect(lambda: (self.accept(), show_help(parent)))
         row.addWidget(self.b_guide)
         row.addStretch()
-        b = QPushButton("Başla")
-        b.setDefault(True)
+        b = QPushButton("Kapat")
         b.clicked.connect(self.accept)
         row.addWidget(b)
         lay.addLayout(row)
+
+    def _pick(self, key):
+        self.choice = key
+        self.accept()
 
 
 del QTextDocument

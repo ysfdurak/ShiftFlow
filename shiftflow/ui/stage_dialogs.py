@@ -419,7 +419,9 @@ class PeriodBar(QWidget):
         self.get_shifts, self.get_auto = get_shifts, get_auto
         lay = QHBoxLayout(self)
         lay.setContentsMargins(6, 0, 6, 0)
-        lay.addWidget(QLabel("Dönem:"))
+        lbl = QLabel("Dönem:")
+        lbl.setObjectName("dialogHelp")
+        lay.addWidget(lbl)
         self.date = QDateEdit()
         self.date.setCalendarPopup(True)
         self.date.setDisplayFormat("dd.MM.yyyy")
@@ -430,11 +432,12 @@ class PeriodBar(QWidget):
         self.shift.setMinimumContentsLength(17)
         self.shift.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         lay.addWidget(self.shift)
-        self.auto_label = QLabel()
-        self.auto_label.setObjectName("dialogHelp")
-        lay.addWidget(self.auto_label)
-        self.b_auto = QPushButton("Otomatik")
-        self.b_auto.setToolTip("Saate göre varsayılan dönemi seç")
+        # Sade düzen: dönem otomatikken ek bir şey görünmez. Elle değiştirilince "↺" çıkar; basınca otomatiğe döner.
+        self.auto_label = QLabel()  # eski arayüzle uyum için tutulur; gösterilmez
+        self.auto_label.hide()
+        self.b_auto = QPushButton("↺")
+        self.b_auto.setFixedWidth(28)
+        self.b_auto.setToolTip("Elle seçildi. Saate göre otomatik döneme dön")
         self.b_auto.clicked.connect(self.set_auto)
         lay.addWidget(self.b_auto)
         self._auto = True
@@ -465,6 +468,8 @@ class PeriodBar(QWidget):
         self._block = False
         self._auto = True
         self.auto_label.setText("(otomatik)")
+        self.b_auto.hide()
+        self.date.setToolTip("Dönem saate göre otomatik seçildi")
         self.changed.emit(self.period())
 
     def _user_changed(self, *_):
@@ -472,6 +477,8 @@ class PeriodBar(QWidget):
             return
         self._auto = False
         self.auto_label.setText("(elle seçildi)")
+        self.b_auto.show()
+        self.date.setToolTip("Dönem elle seçildi")
         self.changed.emit(self.period())
 
     def period(self) -> pr.Period:

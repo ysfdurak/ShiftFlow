@@ -8,7 +8,9 @@ a = Analysis(
     ["shiftflow_main.py"],
     pathex=["."],
     binaries=[],
-    datas=[("docs/KULLANIM_KILAVUZU.md", "docs"), ("docs/ekran", "docs/ekran")],
+    datas=[("docs/KULLANIM_KILAVUZU.md", "docs"), ("docs/ekran", "docs/ekran"),
+           ("ornekler/ornek_vardiya_akisi.json", "ornekler"), ("ornekler/veri/toplama_raporu_gun1.xlsx", "ornekler/veri"),
+           ("ornekler/veri/personel_listesi.xlsx", "ornekler/veri")],
     hiddenimports=["python_calamine", "openpyxl.cell._writer", "win32com", "win32com.client", "pythoncom", "pywintypes",
                    "pywinauto", "pywinauto.controls.uiawrapper", "comtypes", "comtypes.client"],
     # pandas'ın isteğe bağlı bağımlılıkları pakete girmesin (boyut).

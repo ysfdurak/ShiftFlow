@@ -6,7 +6,10 @@ QToolBar { background: #ffffff; border: none; border-bottom: 1px solid #d9dee3; 
 QToolBar QToolButton { padding: 5px 10px; border-radius: 4px; color: #1f2a33; }
 QToolBar QToolButton:hover { background: #e4eef6; }
 QToolBar QToolButton:disabled { color: #a5adb4; }
-QToolButton#buildButton { background: #1f6fb2; color: #ffffff; font-weight: 700; padding: 5px 14px; }
+QToolButton#buildButton { background: #1f6fb2; color: #ffffff; font-weight: 700; padding: 5px 14px; border-radius: 4px; }
+QToolButton#tourButton { border: 1px solid #c3ccd4; border-radius: 9px; min-width: 16px; max-height: 18px; padding: 0 3px;
+                         font-weight: 700; color: #1f6fb2; background: #ffffff; }
+QToolButton#tourButton:hover { background: #e4eef6; }
 QToolButton#buildButton:hover { background: #185a91; }
 QToolButton#buildButton:disabled { background: #b9c6d2; color: #eef2f5; }
 QTabWidget#ribbon QTabBar::tab { padding: 4px 14px; }

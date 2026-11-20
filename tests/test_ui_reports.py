@@ -124,7 +124,8 @@ def test_take_from_open_excel_links_definition(env, monkeypatch, tmp_path):
     build_flow(w, monkeypatch, tmp_path)
     src = w.session.workflow.sources["Toplama Raporu"]
     assert src.report_id == lib.by_name("Toplama Raporu").id and src.kind == "report"
-    assert "Rapor: Toplama Raporu" in w.ds_list.item(0).text() or "Rapor: Toplama Raporu" in w.ds_list.item(1).text()
+    # kaynak ayrıntısı listede kısa tutulur, ipucunda yazar
+    assert any("Rapor: Toplama Raporu" in w.ds_list.item(i).toolTip() for i in range(w.ds_list.count()))
 
 
 def test_one_click_build_and_next_day(env, monkeypatch, tmp_path, picking, staff, no_modal):
