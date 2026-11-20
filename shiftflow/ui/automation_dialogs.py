@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QHBoxLayout, QLabel, QPlainTextEdit,
                                QPushButton, QVBoxLayout)
@@ -23,10 +24,11 @@ class WmsProbeDialog(QDialog):
         self.setWindowTitle("WMS ekranını incele")
         self.resize(900, 640)
         lay = QVBoxLayout(self)
-        h = QLabel("1) WMS'i açın ve raporu çalıştıracağınız ekrana gelin (rapor filtre penceresi açıkken en iyisi).\n"
-                   "2) Aşağıdan WMS penceresini seçip <b>İncele</b>'ye basın.\n\n"
+        h = QLabel("1) WMS'i açın ve raporu çalıştıracağınız ekrana gelin (rapor filtre penceresi açıkken en iyisi).<br>"
+                   "2) Aşağıdan WMS penceresini seçip <b>İncele</b>'ye basın.<br><br>"
                    "ShiftFlow pencerenin menü, düğme ve alanlarının adlarını okur; hiçbir şeye tıklamaz, yazmaz. "
                    "Alanların içeriği ve tablo verisi okunmaz. Rapor yalnız bu bilgisayara kaydedilir.")
+        h.setTextFormat(Qt.RichText)
         h.setWordWrap(True)
         h.setObjectName("dialogHelp")
         lay.addWidget(h)

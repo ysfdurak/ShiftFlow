@@ -724,6 +724,11 @@ class MainWindow(QMainWindow):
         cls = dlg.STEP_DIALOGS.get(key)
         if cls is None:
             return
+        if preset is None and params is None:
+            # Şeritten açılan adım, tabloda seçili sütunla başlar (önceden sütun boş geliyordu).
+            idx = self.table.currentIndex()
+            if idx.isValid() and 0 <= idx.column() < df.shape[1]:
+                preset = str(df.columns[idx.column()])
         if key == "lookup" and len(self.session.workflow.datasets) < 2:
             info(self, "Eşleştirme için önce arama tablosunu ekleyin: Referans tablolar, Dosya aç veya Açık Excel'den al.")
             return
@@ -1364,7 +1369,7 @@ class MainWindow(QMainWindow):
             show_error(self, exc)
             return
         self._title()
-        info(self, f"Excel dosyası oluşturuldu:\n{path}\n\nSayfalar: {', '.join(sheets)}")
+        info(self, f"Excel dosyası oluşturuldu:\n{os.path.normpath(path)}\n\nSayfalar: {', '.join(sheets)}")
 
     # ================================================================ açık raporlar
     def _report_name(self, rid):
@@ -1597,7 +1602,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Rapor oluşturulamadı",
                                 "\n".join(res.notes) + "\n\nHatalı veri kümeleri:\n" + "\n".join(lines[:15]))
             return
-        text = f"Rapor oluşturuldu:\n{res.path}\n\nSayfalar: {', '.join(res.sheets)}\n\n" + "\n".join(res.notes[:20])
+        text = f"Rapor oluşturuldu:\n{os.path.normpath(res.path)}\n\nSayfalar: {', '.join(res.sheets)}\n\n" + "\n".join(res.notes[:20])
         if self.session.dirty and self.workflow_path:
             text += "\n\nİş akışında kaydedilmemiş değişiklikler var (örn. yeni sütun eşlemesi). Kaydetmeyi unutmayın."
         elif not self.workflow_path:
@@ -1609,7 +1614,7 @@ class MainWindow(QMainWindow):
             show_error(self, exc, "Mail hazırlanamadı")
         if draft is None:
             info(self, text, "Rapor oluşturuldu")
-        self.statusBar().showMessage(f"Rapor oluşturuldu: {res.path}", 15000)
+        self.statusBar().showMessage(f"Rapor oluşturuldu: {os.path.normpath(res.path)}", 15000)
         if self.session.workflow.run_settings.get("open_after", True) and hasattr(os, "startfile"):
             try:
                 os.startfile(res.path)  # type: ignore[attr-defined]
@@ -1737,7 +1742,7 @@ class MainWindow(QMainWindow):
                 return
             except OSError:
                 pass
-        info(self, f"Geçici dosya oluşturuldu:\n{path}\n\nBu bilgisayarda dosya otomatik açılamadı.")
+        info(self, f"Geçici dosya oluşturuldu:\n{os.path.normpath(path)}\n\nBu bilgisayarda dosya otomatik açılamadı.")
 
     def open_wms_probe(self):
         from .automation_dialogs import WmsProbeDialog

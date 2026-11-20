@@ -102,11 +102,18 @@ def table_html(df: pd.DataFrame, max_rows: int = 30) -> str:
     td = "border:1px solid #d9dee3;padding:4px 8px"
     head = "".join(f'<th style="{th}">{html.escape(str(c))}</th>' for c in df.columns)
     rows = []
-    for r in df.head(max_rows).itertuples(index=False):
+    shown = df.head(max_rows)
+    # Bir sütunda ondalıklı değer varsa sütunun tamamı 2 ondalıkla yazılır (50 ile 48,50 karışmasın).
+    decimal_cols = {j for j, c in enumerate(shown.columns)
+                    if any(isinstance(v, float) and v == v and not v.is_integer() for v in shown[c].tolist())}
+    for r in shown.itertuples(index=False):
         cells = []
-        for v in r:
+        for j, v in enumerate(r):
             align = "right" if isinstance(v, (int, float)) and not isinstance(v, bool) else "left"
-            cells.append(f'<td style="{td};text-align:{align}">{html.escape(_fmt(v))}</td>')
+            text = _fmt(v)
+            if j in decimal_cols and isinstance(v, (int, float)) and not isinstance(v, bool) and v == v:
+                text = f"{float(v):,.2f}".replace(",", "§").replace(".", ",").replace("§", ".")
+            cells.append(f'<td style="{td};text-align:{align}">{html.escape(text)}</td>')
         rows.append("<tr>" + "".join(cells) + "</tr>")
     more = ""
     if len(df) > max_rows:
