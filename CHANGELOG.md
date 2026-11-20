@@ -1,5 +1,31 @@
 # Değişiklik günlüğü
 
+## 3.11.0 — 2026-11-20
+
+Gerçek Windows bilgisayarda uçtan uca denemeden çıkan düzeltmeler ve sade düzen.
+
+**Düzeltmeler**
+- Açık Excel: pywin32'de `Range.Resize(a, b)` tek hücre döndürüyordu; önizleme, rapor tanıma, ▶ Rapor oluştur, paketler, zamanlanmış görev ve formüllü sütun okuma ilk hücrede kalıyordu. `GetResize` kullanılıyor; test sahte Excel'i aynı tuzağı taşıyor.
+- Korumalı Görünüm'de açık (e-postadan/internetten gelen) kitaplar listede görünür ("Korumalı Görünüm" notuyla).
+- Excel'den gelen tam sayılar tam sayı (1001, 1001.0 değil).
+- Dondurulmuş sütun varken tablo yatay kaydırılınca başlık sağ tık menüsü yanlış sütunu açıyordu.
+- Excel çıktısında grafik eksenleri görünür (openpyxl eksenleri "silinmiş" yazıyordu).
+- Toplam satırı yüzde/oran/ortalama ve kimlik (No, ID, Kod) sütunlarını toplamaz (önceden "Gerçekleşme %" toplamı 385,50 çıkıyordu).
+- Personel listesi gibi tarihsiz ana veriler için "son çalıştırmayla aynı veri" uyarısı verilmez.
+- Outlook'ta hesap yoksa Outlook açılmaz (kurulum sihirbazında takılıyordu); zamanlanmış çalıştırma .eml'e geçer.
+- `calistir.bat`: kurulum hatası ve SSL sorunu (Anaconda) yakalanır, ne yapılacağı yazılır; yarım kurulum sonraki açılışta tamamlanır.
+- Qt'nin kendi düğmeleri Türkçe (Tamam, İptal…); açılır listede seçili öğe görünür; tarih alanına klavyeyle yazılabilir.
+- Tarih sütunu bölünürken ekrandaki biçim (01.11.2026) kullanılır; mail tablosunda ondalıklar sütun içinde tutarlı; yollar Windows biçiminde; WMS penceresinde biçim etiketleri metin olarak görünmüyor; şeritten açılan adım seçili sütunla gelir; birleştirmede iki tarafta aynı küme seçilemez; çöp kutusundan geri yüklemede onay ve açık sonuç; dosya adı örneği seçili dönemle.
+
+**Sade düzen ve rehber**
+- Ayrı üst araç çubuğu kaldırıldı: ▶ Rapor oluştur, dönem, İşlem ara, Geri al/Yinele şerit satırında. Tablonun üstünde iki satır kalır.
+- Sütun bilgisi paneli başlangıçta kapalı (Görünüm menüsü veya başlık sağ tık ile açılır).
+- Adımlar kısa adla (formül ipucunda); veri kümelerinde uzun rapor adı ipucunda.
+- Dönem: "(otomatik)" yazısı ve Otomatik düğmesi yerine yalnız elle değiştirilince çıkan ↺.
+- Otomasyon sekmesi başlangıçta gizli (Görünüm → Otomasyon sekmesi).
+- Yeni: **Ekran rehberi** (7 adım, ilgili bölüm vurgulanır; ? düğmesi), **Örnekle dene** (sentetik veri + hazır akış, kendi dosyalara dokunmaz), karşılama penceresinde başlangıç seçenekleri, boş ekranda tıklanabilir başlangıç bağlantıları.
+- Kılavuza "İlk raporunu 10 dakikada kur" bölümü.
+
 ## 3.10.0 — 2026-11-10
 
 - Tarayıcı demosu (`web/`): aynı motor Pyodide ile tarayıcıda çalışır; sunucu gerekmez, veri tarayıcıdan çıkmaz.

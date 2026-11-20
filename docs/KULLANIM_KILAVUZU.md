@@ -1,5 +1,21 @@
 # ShiftFlow Kullanım Kılavuzu
 
+## İlk raporunu 10 dakikada kur
+
+Bu bölüm ShiftFlow'u ilk kez açan kişi içindir. Ayrıntılar aşağıdaki bölümlerde.
+
+**Önce örnekle bakın (2 dakika).** İlk açılışta **Örnekle dene**'yi seçin (sonradan: **Yardım → Örnekle dene**). Sentetik bir vardiya verisi ve hazır bir iş akışı açılır, ardından ekran adım adım tanıtılır. Sol alttaki adımlara tek tek tıklayın: her adımdan sonra tablonun nasıl değiştiğini görürsünüz. Örnek, kendi dosyalarınıza dokunmaz.
+
+**Sonra kendi raporunuzla:**
+
+1. **Raporu alın.** WMS raporunu Excel'de açın; ShiftFlow'da **Giriş → Açık Excel'den al**. (Dosya için **Dosya aç**, kopyaladığınız tablo için **Ctrl+V**.)
+2. **Excel'de elle yaptığınız işi adım olarak ekleyin.** Sütun başlığına sağ tıklayın: sırala, filtrele, boşları çıkar, yeniden adlandır. Formül için **Formül → Hesapla**, DÜŞEYARA için **Formül → Eşleştir**. Raporun yanına Excel'de formüllü sütunlar ekliyorsanız **Formül → Excel'deki formüllü sütunları al** hepsini tek seferde adıma çevirir.
+3. **Özet gerekiyorsa** **Özet ve birleştir → Grupla** veya **Pivot**. Sonuç solda yeni bir veri kümesi olarak çıkar.
+4. **Kaydedin:** **Ctrl+S**. İş akışı bir `.json` dosyasıdır; veriler değil adımlar saklanır.
+5. **Ertesi gün:** Raporları Excel'de açın, iş akışını açın (Giriş → Akış aç) ve **▶ Rapor oluştur**'a (F9) basın. Aynı adımlar yeni veriyle çalışır, Excel dosyası oluşur.
+
+**Takılırsanız:** Bir işlemin yerini bilmiyorsanız **İşlem ara** (Ctrl+K) ile yazarak bulun. Ekranın bölümlerini yeniden görmek için şerit satırının sağındaki **?** düğmesi (veya **Yardım → Ekran rehberi**). Her pencerede **F1** o konunun yardımını açar.
+
 ## 1. Temel fikir
 
 ShiftFlow'da tablodaki veriyi elle değiştirmezsiniz. Bunun yerine **adım** eklersiniz: "Bölge boş olanları çıkar", "Gerçekleşme % = Toplanan / Hedef × 100" gibi. Adımlar sırayla kaydedilir. Yarın yeni rapor geldiğinde aynı adımlar yeni veriye uygulanır.
@@ -8,17 +24,17 @@ Kaynak dosya hiçbir zaman değiştirilmez. Bir adım hata verirse uygulanmaz ve
 
 ## 2. Ekran
 
-- **Üst çubuk (her zaman görünür):** ▶ Rapor oluştur, dönem seçimi, 🔍 İşlem ara (Ctrl+K), Geri al, Yinele.
-- **Sekmeler (Excel şeridi gibi):** **Giriş** (veri al, akış aç/kaydet, Excel'e aktar) · **Dönüştür** (filtre, sırala, sütunlar, tip, böl, satırlara çevir) · **Temizle** (metin temizle, yazımı birleştir, tekrarlar, boş satırlar, aşağı doldur) · **Formül** (hesapla, koşullu, kurallar, DÜŞEYARA, Excel formülleri, parametreler) · **Özet ve birleştir** (grupla, pivot, birleştir, alt alta ekle) · **Rapor** (doğrula, rapor tanımları, ayarlar, referans tablolar, arşiv, vardiyalar). Son kullandığınız sekme hatırlanır.
+- **Şerit satırı (her zaman görünür):** solda ▶ Rapor oluştur; sağda dönem seçimi, 🔍 İşlem ara (Ctrl+K), Geri al, Yinele ve **?** (ekran rehberi). Tablonun üstünde yalnız iki satır vardır: sekmeler ve seçili sekmenin düğmeleri.
+- **Sekmeler (Excel şeridi gibi):** **Giriş** (veri al, akış aç/kaydet, Excel'e aktar) · **Dönüştür** (filtre, sırala, sütunlar, tip, böl, satırlara çevir) · **Temizle** (metin temizle, yazımı birleştir, tekrarlar, boş satırlar, aşağı doldur) · **Formül** (hesapla, koşullu, kurallar, DÜŞEYARA, Excel formülleri, parametreler) · **Özet ve birleştir** (grupla, pivot, birleştir, alt alta ekle) · **Rapor** (doğrula, rapor tanımları, ayarlar, referans tablolar, arşiv, vardiyalar). Son kullandığınız sekme hatırlanır. **Otomasyon** sekmesi (zamanlanmış görev, WMS teşhisi) başlangıçta gizlidir; **Görünüm → Otomasyon sekmesi** ile açılır.
 - **Yardım:** **F1** kılavuzu açar; işlem pencerelerinde F1 veya **Yardım** düğmesi o işlemin bölümünü açar. Kılavuzda arama yapılabilir.
-- **Veri kümeleri (sol üst):** Yüklediğiniz kaynaklar ve bunlardan ürettiğiniz birleştirme, pivot ve özetler. Her birinin satır sayısı görünür. Hatalı olan kırmızıdır.
-- **İşlem adımları (sol alt):** Seçili veri kümesinin adımları. Her adımda satır değişimi görünür (örn. `1.500 → 1.475 satır`). ⚠ uyarı, ✖ hata demektir. Ayrıntı için fareyi üzerine getirin.
+- **Veri kümeleri (sol üst):** Yüklediğiniz kaynaklar ve bunlardan ürettiğiniz birleştirme, pivot ve özetler. Her birinin türü ve satır sayısı görünür; hangi rapordan geldiği fareyi üzerine getirince yazar. Hatalı olan kırmızıdır.
+- **İşlem adımları (sol alt):** Seçili veri kümesinin adımları, kısa adlarıyla ("3. Hesapla: Gerçekleşme %"). Formülün tamamı fareyi üzerine getirince görünür. Her adımda satır değişimi yazar (örn. `1.500 → 1.475 satır`). ⚠ uyarı, ✖ hata demektir.
 - **Tablo (orta):** Seçili veri kümesinin sonucu. Birden çok hücre seçince alt çubukta Sayı, Toplam ve Ortalama görünür (Excel'deki gibi).
   - **Ctrl+F:** Tabloda bul. Enter sonraki, Shift+Enter önceki, Esc kapatır; büyük/küçük harf fark etmez.
   - **Başlıktaki ▾:** O sütun için filtre penceresini açar (Excel'deki filtre oku gibi).
   - **Görünümde gizle:** Başlığa sağ tık → Görünüm → *Bu sütunu görünümde gizle*. Yalnız ekranda gizler; adım eklenmez, çıktıya yine yazılır.
   - **Sütun dondurma:** Başlığa sağ tık → Görünüm → *Sütunları buraya kadar dondur*. Soldaki sütunlar (örn. Personel No, Ad) sağa kaydırırken görünür kalır; *Dondurmayı kaldır* ile geri alınır.
-- **Sütun bilgisi (sağ):** Her sütunun tipi, boş hücre sayısı ve farklı değer sayısı. Bir sütuna çift tıklayınca (veya başlıkta sağ tık → **Değer dağılımı…**) en sık 20 değer, adet ve yüzdesi; sayılarda en küçük/en büyük/ortalama/toplam görünür. Bir değere çift tıklamak yalnız o değeri gösteren filtreyi ekler.
+- **Sütun bilgisi (sağ, başlangıçta kapalı):** **Görünüm → Sütun bilgisi** ile veya başlığa sağ tık → **Değer dağılımı ve sütun bilgisi** ile açılır; açık bırakırsanız sonraki açılışta da açık gelir. Her sütunun tipi, boş hücre sayısı ve farklı değer sayısı. Bir sütuna çift tıklayınca (veya başlıkta sağ tık → **Değer dağılımı…**) en sık 20 değer, adet ve yüzdesi; sayılarda en küçük/en büyük/ortalama/toplam görünür. Bir değere çift tıklamak yalnız o değeri gösteren filtreyi ekler.
 
 ## 3. Veri alma
 
@@ -371,7 +387,7 @@ Excel "meşgul" uyarısı alırsanız (Excel'de bir hücre düzenleniyordur veya
 
 Araç çubuğunda **Dönem** seçimi vardır: tarih ve vardiya (veya "Tüm gün").
 
-- **Varsayılan:** Saate göre otomatik hesaplanır ve "(otomatik)" yazar. Değiştirirseniz "(elle seçildi)" olur; **Otomatik** düğmesi varsayılana döndürür.
+- **Varsayılan:** Saate göre otomatik hesaplanır. Tarihi veya vardiyayı değiştirirseniz yanında **↺** düğmesi çıkar; ona basınca otomatiğe döner. Tarih alanına klavyeyle de yazabilirsiniz (Enter ile uygulanır).
 - **Varsayılanın hesabı:** Yeni vardiya başladıktan sonraki ilk 2 saat içinde (süre ayarlanabilir) varsayılan, **biten** vardiyadır. Örnek: 16:40'ta varsayılan 08:00–16:00 vardiyasıdır, çünkü vardiya sonu raporu biten vardiya için hazırlanır.
 - **Vardiya tanımları:** **Dosya → Vardiyalar…** ile bir kez tanımlanır. Varsayılan: Gece 00–08, Gündüz 08–16, Akşam 16–24. Gece yarısını geçen vardiya (22:00–06:00) desteklenir; vardiyanın tarihi başladığı gündür.
 - **Seçili dönemin etkileri:**
@@ -415,7 +431,7 @@ Rapor oluşunca **mail önizlemesi** açılır. Alıcılar ve konu burada son ke
 - **Gönder…:** Alıcı listesi gösterilip onay istenir; onaylamadan gitmez.
 - **.eml olarak aç:** Outlook'a bağlanılamazsa kullanılır. Dosya Outlook'ta düzenlenebilir taslak olarak açılır.
 
-Mail **hiçbir zaman** onayınız olmadan gönderilmez. Outlook kendi hesabınızla çalışır; ShiftFlow parola saklamaz.
+Mail **hiçbir zaman** onayınız olmadan gönderilmez. Outlook kendi hesabınızla çalışır; ShiftFlow parola saklamaz. Outlook'ta hiç e-posta hesabı tanımlı değilse ShiftFlow Outlook'u açmaya çalışmaz (açsa kurulum sihirbazı çıkardı); bunu söyler ve taslağı .eml olarak kaydetmeyi önerir. Zamanlanmış çalıştırmada bu durumda kendiliğinden .eml'e geçer.
 
 ### 9.8 Grafik ve şablon
 
@@ -457,7 +473,7 @@ Silinen **rapor tanımları**, **referans tablolar** ve **arşiv dönemleri/küm
 
 ### 9.12 Otomasyon: zamanlanmış çalıştırma ve WMS teşhisi
 
-**Otomasyon** sekmesinde üç araç var.
+**Otomasyon** sekmesinde üç araç var. Sekme başlangıçta gizlidir: **Görünüm → Otomasyon sekmesi**.
 
 **Zamanlanmış görev:** Rapor paketini (veya tek iş akışını) her vardiya bitiminden belirli bir süre sonra, örneğin 15 dakika sonra, pencere açmadan çalıştırır.
 1. Paketi veya iş akışını seçin. Süreyi ve mail biçimini seçin: *Outlook Taslaklar klasörüne kaydet* veya *.eml dosyası*. Mail hiçbir zaman kendiliğinden gönderilmez.
