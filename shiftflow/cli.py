@@ -172,10 +172,15 @@ def run(argv=None, provider=None, library=None, archive=None, outlook=None, now:
                                     html="<pre>" + text.replace("<", "&lt;") + "</pre>", text=text)
             drafts.append((warn, None))
         out_dir = next((os.path.dirname(r.path) for r in results if r.path), _appdir())
-        if a.mail != "yok":
+        mail_mode = a.mail
+        if mail_mode == "outlook" and outlook is None and not mailer.OutlookMailer().has_profile():
+            # Profilsiz Outlook kurulum sihirbazını açar ve görev orada takılır; .eml'e geçilir.
+            lines.append("Outlook'ta e-posta hesabı yok; taslaklar .eml dosyası olarak kaydedildi.")
+            mail_mode = "eml"
+        if mail_mode != "yok":
             for d, ref_path in drafts:
                 try:
-                    if a.mail == "outlook":
+                    if mail_mode == "outlook":
                         (outlook or mailer.OutlookMailer()).save_draft(d)
                         lines.append(f"Mail taslağı Outlook Taslaklar klasörüne kaydedildi: {d.subject}")
                     else:

@@ -170,6 +170,10 @@ def save_eml(draft: MailDraft, path: str) -> str:
     return path
 
 
+NO_PROFILE = ("Outlook'ta tanımlı bir e-posta hesabı yok. Outlook'u bir kez açıp hesabınızı ekleyin; "
+              "o zamana kadar mail taslağı .eml dosyası olarak kaydedilir.")
+
+
 class OutlookMailer:
     """Outlook (COM) ile taslak açma / onaylı gönderim. `app_factory` testler içindir."""
 
@@ -187,15 +191,39 @@ class OutlookMailer:
             return False, "pywin32 kurulu değil."
         return True, ""
 
+    def has_profile(self) -> bool:
+        """Outlook'ta en az bir posta profili var mı?
+
+        Profil yoksa Outlook.Application çağrısı "Outlook'a hoş geldiniz" kurulum sihirbazını açar
+        ve zamanlanmış (pencerisiz) çalıştırma orada sonsuza dek bekler. Kayıt defterine bakılır;
+        okunamıyorsa engellemez (True)."""
+        if self._factory is not None or sys.platform != "win32":
+            return True
+        try:  # pragma: no cover - yalnız Windows
+            import winreg
+            for ver in ("16.0", "15.0"):
+                try:
+                    with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                        rf"Software\Microsoft\Office\{ver}\Outlook\Profiles") as k:
+                        if winreg.QueryInfoKey(k)[0] > 0:
+                            return True
+                except OSError:
+                    continue
+            return False  # hiç profil yok: Outlook ilk açılış sihirbazını gösterirdi
+        except Exception:
+            return True
+
     def _app(self):
         if self._factory is not None:
             return self._factory()
+        if not self.has_profile():
+            raise ShiftFlowError(NO_PROFILE)
         import win32com.client  # pragma: no cover - yalnız Windows
         try:
             return win32com.client.Dispatch("Outlook.Application")
         except Exception as exc:
-            raise ShiftFlowError("Outlook'a bağlanılamadı. Outlook kurulu ve hesabınız açık mı?",
-                                 detail=str(exc)) from exc
+            raise ShiftFlowError("Outlook'a bağlanılamadı. Outlook kurulu mu? Kurulu değilse 'E-posta dosyası "
+                                 "(.eml) olarak kaydet' seçeneğini kullanın.", detail=str(exc)) from exc
 
     def _item(self, d: MailDraft, need_to: bool = True):
         if need_to or d.to:
