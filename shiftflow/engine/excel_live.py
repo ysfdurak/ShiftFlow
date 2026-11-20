@@ -87,8 +87,12 @@ def _clean_value(v):
         return v
     if isinstance(v, bool):
         return v
-    if isinstance(v, (int, float)):
-        return float(v) if isinstance(v, float) else v
+    if isinstance(v, float):
+        # Excel COM her sayıyı ondalıklı verir (12 → 12.0); tam sayılar tam sayı olarak alınır,
+        # yoksa "Personel No" gibi sütunlar 1001.0 görünüyordu.
+        return int(v) if v.is_integer() and abs(v) < 2 ** 53 else v
+    if isinstance(v, int):
+        return v
     return str(v)
 
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Callable
 
 import numpy as np
@@ -766,7 +767,12 @@ def _run_split(inputs, p, label):
     _need(df, [col], label)
     mode = p.get("mode", "delimiter")
     blank = _blank_mask(df[col]).tolist()
-    text = [None if b else str(v) for v, b in zip(df[col].tolist(), blank)]  # düz liste: pandas tip çevirmesin
+    def _shown(v):
+        # Tarih/saat ekranda göründüğü gibi bölünür (01.11.2026 14:05), ISO metni (2026-11-01 14:05:00) değil.
+        if isinstance(v, (pd.Timestamp, datetime)):
+            return v.strftime("%d.%m.%Y %H:%M") if (v.hour or v.minute or v.second) else v.strftime("%d.%m.%Y")
+        return str(v)
+    text = [None if b else _shown(v) for v, b in zip(df[col].tolist(), blank)]  # düz liste: pandas tip çevirmesin
     if mode == "delimiter":
         sep = p.get("delimiter", "-")
         if sep == "":

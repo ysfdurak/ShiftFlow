@@ -229,6 +229,7 @@ class ArchiveDialog(QDialog):
         for d in (self.d_from, self.d_to):
             d.setCalendarPopup(True)
             d.setDisplayFormat("dd.MM.yyyy")
+            d.setKeyboardTracking(False)
         dr = QHBoxLayout()
         dr.addWidget(self.d_from)
         dr.addWidget(QLabel("–"))
@@ -421,6 +422,8 @@ class PeriodBar(QWidget):
         self.date = QDateEdit()
         self.date.setCalendarPopup(True)
         self.date.setDisplayFormat("dd.MM.yyyy")
+        # Elle yazarken her tuşta dönem değişip yeniden hesaplanmasın; Enter/alan değişince uygulanır.
+        self.date.setKeyboardTracking(False)
         lay.addWidget(self.date)
         self.shift = QComboBox()
         self.shift.setMinimumContentsLength(17)
