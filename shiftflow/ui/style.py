@@ -41,6 +41,8 @@ QPushButton:disabled { color: #a5adb4; }
 QDialogButtonBox QPushButton { min-width: 90px; padding: 6px 12px; }
 QGroupBox { border: 1px solid #d5dbe0; border-radius: 4px; margin-top: 10px; padding-top: 8px; }
 QGroupBox::title { subcontrol-origin: margin; left: 8px; padding: 0 4px; color: #33404b; }
+QComboBox QAbstractItemView { background: #ffffff; color: #1f2a33; selection-background-color: #cde2f6;
+                              selection-color: #10202e; outline: 0; }
 QLineEdit, QComboBox, QPlainTextEdit { background: #ffffff; border: 1px solid #c3ccd4; border-radius: 3px; padding: 3px 5px; }
 QStatusBar { background: #e9edf1; color: #33404b; }
 """

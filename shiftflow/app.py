@@ -15,6 +15,19 @@ def _log_path() -> str:
     return os.path.join(folder, "shiftflow.log")
 
 
+def install_turkish(app) -> bool:
+    """Qt'nin kendi metinleri (Tamam/İptal, Evet/Hayır, dosya penceresi) Türkçe görünsün.
+    Önceden standart düğmeler İngilizce (OK/Cancel) kalıyordu."""
+    from PySide6.QtCore import QLibraryInfo, QLocale, QTranslator
+    tr = QTranslator(app)
+    if tr.load(QLocale(QLocale.Turkish, QLocale.Turkey), "qtbase", "_",
+               QLibraryInfo.path(QLibraryInfo.TranslationsPath)):
+        app.installTranslator(tr)
+        app._sf_translator = tr  # çöp toplayıcı silmesin
+        return True
+    return False
+
+
 def main(argv=None) -> int:
     from .cli import wants_cli
     args0 = (argv if argv is not None else sys.argv)[1:]
@@ -42,6 +55,7 @@ def main(argv=None) -> int:
                         format="%(asctime)s %(levelname)s %(message)s")
 
     app = QApplication(argv if argv is not None else sys.argv)
+    install_turkish(app)
     app.setApplicationName(APP_NAME)
     app.setOrganizationName("ShiftFlow")
     app.setStyle("Fusion")
