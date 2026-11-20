@@ -1,0 +1,51 @@
+# Her gönderimde testleri gerçek bir Windows makinesinde çalıştırır ve
+# ShiftFlow.exe paketini üretir. Paket, Actions sayfasındaki çalıştırmanın
+# "Artifacts" bölümünden indirilebilir.
+name: Windows test ve paket
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Bağımlılıklar
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Testler (motor + ekransız arayüz)
+        env:
+          QT_QPA_PLATFORM: offscreen
+          SHIFTFLOW_SCREENSHOT_DIR: ekran
+        run: python -m pytest -q
+      - name: Örnek verilerle uçtan uca çalıştırma
+        run: |
+          python ornekler/ornek_veri_olustur.py
+          python ornekler/ornek_veri_olustur.py --gun 3 --bicim-degisik
+          python ornekler/ornek_akis_olustur.py
+      - name: Exe paketi
+        run: pyinstaller --noconfirm shiftflow.spec
+      - name: Exe açılış testi (5 sn içinde çökmemeli)
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\ShiftFlow\ShiftFlow.exe" -PassThru
+          Start-Sleep -Seconds 8
+          if ($p.HasExited) { Write-Error "ShiftFlow.exe açıldıktan hemen sonra kapandı (kod $($p.ExitCode))"; exit 1 }
+          Stop-Process -Id $p.Id -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ShiftFlow-windows
+          path: dist/ShiftFlow
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ekran-goruntuleri
+          path: ekran

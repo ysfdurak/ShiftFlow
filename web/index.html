@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ShiftFlow Data Studio — Tarayıcı demosu</title>
+<meta name="description" content="Tekrarlanan Excel rapor işini adım adım bir akışa çeviren ShiftFlow Data Studio'nun tarayıcıda çalışan demosu. Veri tarayıcınızdan çıkmaz.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231f5fae'/%3E%3Ctext x='16' y='21' font-family='Arial' font-size='14' font-weight='700' fill='white' text-anchor='middle'%3ESF%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">SF</span>
+    <div>
+      <h1>ShiftFlow Data Studio</h1>
+      <p class="sub">Tarayıcı demosu · <span id="ver">…</span></p>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge good" title="Hesaplama tarayıcınızın içinde, Python (Pyodide) ile yapılır. Hiçbir veri sunucuya gönderilmez.">Veri tarayıcınızdan çıkmaz</span>
+    <a class="badge" href="#hakkinda">Hakkında</a>
+  </div>
+</header>
+
+<div id="loader" class="loader" role="status" aria-live="polite">
+  <div class="loader-box">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2>Hesaplama motoru yükleniyor</h2>
+    <p id="loader-step">Python tarayıcıya indiriliyor…</p>
+    <p class="muted small">İlk açılışta 20–40 MB indirilir ve 10–30 saniye sürebilir; sonraki açılışlar önbellekten gelir.</p>
+  </div>
+</div>
+
+<main id="app" class="app" hidden>
+  <section id="welcome" class="welcome">
+    <div class="welcome-text">
+      <h2>Her vardiya aynı Excel işini yapmak yerine bir kez tanımlayın, sonra tek tıkla tekrarlayın.</h2>
+      <p>ShiftFlow, rapor hazırlama adımlarını (temizle, eşleştir, hesapla, doğrula, özetle) bir akış olarak saklar. Yeni gün geldiğinde aynı akış yeni veriyle aynı sonucu üretir; şüpheli veriyi sessizce geçirmez.</p>
+      <div class="actions">
+        <button class="btn primary" data-act="demo">Örnek akışı kur</button>
+        <button class="btn" data-act="sample">Örnek veriyle boş başla</button>
+        <label class="btn">Kendi dosyanı yükle<input type="file" id="file" accept=".csv,.txt,.xlsx,.xlsm" hidden></label>
+      </div>
+      <p class="muted small">Örnek veri sentetiktir (gerçek kişi veya şirket verisi değildir). Kendi dosyanızı yüklerseniz dosya bilgisayarınızdan çıkmaz.</p>
+    </div>
+  </section>
+
+  <section id="work" class="work" hidden>
+    <aside class="panel datasets">
+      <div class="panel-head"><h3>Veri kümeleri</h3></div>
+      <ul id="ds-list" class="ds-list"></ul>
+      <div class="panel-foot">
+        <label class="btn small">+ Dosya<input type="file" id="file2" accept=".csv,.txt,.xlsx,.xlsm" hidden></label>
+        <button class="btn small" data-act="sample-add">+ Örnek veri</button>
+      </div>
+      <div class="repeat">
+        <h4>Tekrarlanabilirlik</h4>
+        <p class="muted small">Ertesi günün verisi gelir, aynı adımlar yeniden çalışır.</p>
+        <button class="btn small wide" data-act="nextday">Yeni günün verisiyle çalıştır</button>
+        <p id="day-info" class="muted small"></p>
+      </div>
+    </aside>
+
+    <section class="panel steps">
+      <div class="panel-head">
+        <h3 id="steps-title">Adımlar</h3>
+        <div class="tools">
+          <button class="icon-btn" data-act="undo" title="Geri al (Ctrl+Z)" aria-label="Geri al">↶</button>
+          <button class="icon-btn" data-act="redo" title="Yinele (Ctrl+Y)" aria-label="Yinele">↷</button>
+        </div>
+      </div>
+      <ol id="step-list" class="step-list"></ol>
+      <div class="add-step">
+        <button class="btn primary wide" data-act="add-menu" aria-haspopup="true">+ Adım ekle</button>
+        <div id="add-menu" class="menu" hidden></div>
+      </div>
+    </section>
+
+    <section class="panel preview">
+      <div class="panel-head">
+        <h3 id="preview-title">Önizleme</h3>
+        <div class="tools">
+          <span id="preview-count" class="muted small"></span>
+          <button class="btn small" data-act="flow-json" title="Akış tanımını JSON olarak indir">Akışı indir</button>
+          <button class="btn small primary" data-act="export">Excel'e aktar</button>
+        </div>
+      </div>
+      <div id="notice"></div>
+      <div class="table-wrap"><table id="grid" class="grid"></table></div>
+    </section>
+  </section>
+
+  <section id="hakkinda" class="about">
+    <h2>Bu demo hakkında</h2>
+    <div class="about-grid">
+      <div>
+        <h4>Ne gösteriyor</h4>
+        <p>Asıl ürün, depo vardiya raporları için yazılmış bir Windows masaüstü uygulamasıdır (Python + PySide6). Bu sayfa, uygulamanın veri işleme motorunu hiç değiştirmeden tarayıcıda çalıştırır: adım ekleme, önizleme, hatalı değişikliği geri alma, farklı yazılmış değerleri yakalama, doğrulama, pivot ve biçimli Excel çıktısı.</p>
+      </div>
+      <div>
+        <h4>Veri nerede işleniyor</h4>
+        <p>Tüm hesaplama tarayıcınızda Pyodide (WebAssembly üzerinde Python) ile yapılır. Sayfa açılırken yalnızca kod indirilir; yüklediğiniz dosya ve sonuçlar hiçbir sunucuya gönderilmez. Sayfayı kapattığınızda silinir.</p>
+      </div>
+      <div>
+        <h4>Masaüstü sürümünde ayrıca</h4>
+        <p>WMS'in açtığı kaydedilmemiş Excel'den doğrudan okuma, Outlook'ta ekli taslak e-posta, Windows Görev Zamanlayıcı ile zamanlanmış çalışma, rapor arşivi ve gösterge paneli. Bunlar Windows'a özgü olduğu için demoda yoktur.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <form id="modal-form" class="modal-box" novalidate>
+    <h3 id="modal-title"></h3>
+    <p id="modal-help" class="muted small"></p>
+    <div id="modal-body"></div>
+    <p id="modal-error" class="form-error" hidden></p>
+    <div class="modal-actions">
+      <button type="button" class="btn" data-act="modal-cancel">Vazgeç</button>
+      <button type="submit" class="btn primary">Ekle</button>
+    </div>
+  </form>
+</div>
+
+<div id="busy" class="busy" hidden><div class="spinner small" aria-hidden="true"></div><span>Hesaplanıyor…</span></div>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
+<footer class="foot">
+  <span>ShiftFlow Data Studio · Yusuf Durak</span>
+  <span class="muted">Motor: Python · pandas · openpyxl · Pyodide</span>
+</footer>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

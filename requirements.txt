@@ -1,0 +1,9 @@
+# Çalışma için gerekenler
+PySide6-Essentials>=6.6,<7
+pandas>=2.2,<4
+openpyxl>=3.1
+python-calamine>=0.2
+# Açık Excel kitaplarına erişim (yalnız Windows)
+pywin32>=306; sys_platform == "win32"
+# WMS ekran teşhisi / otomasyonu (yalnız Windows; yalnız okur)
+pywinauto>=0.6.8; sys_platform == "win32"

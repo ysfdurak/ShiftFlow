@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/
+.pytest_cache/
+ekran/
+ornekler/veri/
+# Gerçek şirket verisi depoya eklenmez
+*.xlsx
+*.xls
+*.csv
+!tests/**/*.csv
+
+# Tarayıcı demosu (üretilen)
+web/dist/
+.sfweb_dev/

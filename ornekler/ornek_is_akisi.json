@@ -1,0 +1,417 @@
+{
+  "format": "shiftflow-workflow",
+  "schema_version": 3,
+  "name": "Günlük toplama raporu",
+  "saved_at": "2026-11-10T11:41:37",
+  "sources": [
+    {
+      "name": "Toplama",
+      "kind": "file",
+      "path": "veri/toplama_raporu_gun1.xlsx",
+      "sheet": "Toplama",
+      "header": true,
+      "expected_columns": [
+        {
+          "name": "Tarih",
+          "type": "date"
+        },
+        {
+          "name": "İşlem Zamanı",
+          "type": "date"
+        },
+        {
+          "name": "Personel No",
+          "type": "text"
+        },
+        {
+          "name": "Bölge",
+          "type": "text"
+        },
+        {
+          "name": "Sipariş No",
+          "type": "text"
+        },
+        {
+          "name": "Toplanan Adet",
+          "type": "number"
+        },
+        {
+          "name": "Hedef Adet",
+          "type": "number"
+        },
+        {
+          "name": "Süre (dk)",
+          "type": "number"
+        },
+        {
+          "name": "Hatalı Toplama",
+          "type": "number"
+        }
+      ],
+      "column_map": {},
+      "report_id": "r_bcac8893c2",
+      "reference_id": null,
+      "archive": null
+    },
+    {
+      "name": "Personel",
+      "kind": "file",
+      "path": "veri/personel_listesi.xlsx",
+      "sheet": "Personel",
+      "header": true,
+      "expected_columns": [
+        {
+          "name": "Personel No",
+          "type": "text"
+        },
+        {
+          "name": "Ad Soyad",
+          "type": "text"
+        },
+        {
+          "name": "Vardiya",
+          "type": "text"
+        },
+        {
+          "name": "Ekip Lideri",
+          "type": "text"
+        }
+      ],
+      "column_map": {},
+      "report_id": "r_5950498246",
+      "reference_id": null,
+      "archive": null
+    }
+  ],
+  "datasets": [
+    {
+      "name": "Toplama",
+      "origin": {
+        "type": "source",
+        "source": "Toplama",
+        "inputs": [],
+        "params": {}
+      },
+      "steps": [
+        {
+          "op": "filter",
+          "params": {
+            "conditions": [
+              {
+                "column": "Bölge",
+                "op": "not_empty"
+              }
+            ],
+            "mode": "and"
+          },
+          "id": "a0f8215e",
+          "note": ""
+        },
+        {
+          "op": "calc",
+          "params": {
+            "name": "Gerçekleşme %",
+            "formula": "[Toplanan Adet] / [Hedef Adet] * 100"
+          },
+          "id": "e64c82e0",
+          "note": ""
+        },
+        {
+          "op": "conditional",
+          "params": {
+            "name": "Performans",
+            "conditions": [
+              {
+                "column": "Gerçekleşme %",
+                "op": "ge",
+                "value": "100"
+              }
+            ],
+            "mode": "and",
+            "then": "Hedefte",
+            "else": "Hedef altı"
+          },
+          "id": "08314505",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "name": "Personel",
+      "origin": {
+        "type": "source",
+        "source": "Personel",
+        "inputs": [],
+        "params": {}
+      },
+      "steps": [
+        {
+          "op": "select",
+          "params": {
+            "columns": [
+              "Personel No",
+              "Ad Soyad",
+              "Vardiya",
+              "Ekip Lideri"
+            ]
+          },
+          "id": "ffa6ff07",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "name": "Detay",
+      "origin": {
+        "type": "join",
+        "source": null,
+        "inputs": [
+          "Toplama",
+          "Personel"
+        ],
+        "params": {
+          "how": "left",
+          "left_keys": [
+            "Personel No"
+          ],
+          "right_keys": [
+            "Personel No"
+          ],
+          "right_label": "Personel",
+          "add_match_column": true
+        }
+      },
+      "steps": []
+    },
+    {
+      "name": "Vardiya x Bölge",
+      "origin": {
+        "type": "pivot",
+        "source": null,
+        "inputs": [
+          "Detay"
+        ],
+        "params": {
+          "rows": [
+            "Vardiya"
+          ],
+          "columns": [
+            "Bölge"
+          ],
+          "values": [
+            {
+              "column": "Toplanan Adet",
+              "func": "sum"
+            }
+          ],
+          "totals": true
+        }
+      },
+      "steps": []
+    },
+    {
+      "name": "Ekip Özeti",
+      "origin": {
+        "type": "group",
+        "source": null,
+        "inputs": [
+          "Detay"
+        ],
+        "params": {
+          "by": [
+            "Ekip Lideri",
+            "Vardiya"
+          ],
+          "values": [
+            {
+              "column": "Toplanan Adet",
+              "func": "sum"
+            },
+            {
+              "column": "Hedef Adet",
+              "func": "sum"
+            },
+            {
+              "column": "Hatalı Toplama",
+              "func": "sum"
+            },
+            {
+              "column": "Sipariş No",
+              "func": "count",
+              "name": "Sipariş Sayısı"
+            }
+          ]
+        }
+      },
+      "steps": [
+        {
+          "op": "calc",
+          "params": {
+            "name": "Gerçekleşme %",
+            "formula": "[Toplanan Adet (Toplam)] / [Hedef Adet (Toplam)] * 100"
+          },
+          "id": "d559b46b",
+          "note": ""
+        },
+        {
+          "op": "sort",
+          "params": {
+            "keys": [
+              {
+                "column": "Gerçekleşme %",
+                "ascending": false
+              }
+            ]
+          },
+          "id": "89b82c83",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "name": "Eşleşmeyenler",
+      "origin": {
+        "type": "copy",
+        "source": null,
+        "inputs": [
+          "Detay"
+        ],
+        "params": {}
+      },
+      "steps": [
+        {
+          "op": "filter",
+          "params": {
+            "conditions": [
+              {
+                "column": "Eşleşme Durumu",
+                "op": "eq",
+                "value": "Yalnız solda"
+              }
+            ]
+          },
+          "id": "c17bdad9",
+          "note": ""
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "dataset": "Detay",
+      "sheet": "Detay"
+    },
+    {
+      "dataset": "Vardiya x Bölge",
+      "sheet": "Vardiya Bölge"
+    },
+    {
+      "dataset": "Ekip Özeti",
+      "sheet": "Ekip Özeti"
+    },
+    {
+      "dataset": "Eşleşmeyenler",
+      "sheet": "Kontrol"
+    }
+  ],
+  "run_settings": {
+    "output_dir": "",
+    "file_name": "{akis} {tarih} {saat}",
+    "open_after": true
+  },
+  "reports": {
+    "r_5950498246": {
+      "name": "Personel Listesi",
+      "columns": [
+        {
+          "name": "Personel No",
+          "type": "text"
+        },
+        {
+          "name": "Ad Soyad",
+          "type": "text"
+        },
+        {
+          "name": "Vardiya",
+          "type": "text"
+        },
+        {
+          "name": "Ekip Lideri",
+          "type": "text"
+        }
+      ],
+      "key_columns": [
+        "Personel No",
+        "Ad Soyad",
+        "Vardiya",
+        "Ekip Lideri"
+      ],
+      "id": "r_5950498246",
+      "workbook_hint": "",
+      "sheet_hint": "",
+      "min_score": 0.8,
+      "column_map": {},
+      "description": "",
+      "updated": "2026-11-10T11:41:37"
+    },
+    "r_bcac8893c2": {
+      "name": "WMS Toplama Performans Raporu",
+      "columns": [
+        {
+          "name": "Tarih",
+          "type": "date"
+        },
+        {
+          "name": "İşlem Zamanı",
+          "type": "date"
+        },
+        {
+          "name": "Personel No",
+          "type": "text"
+        },
+        {
+          "name": "Bölge",
+          "type": "text"
+        },
+        {
+          "name": "Sipariş No",
+          "type": "text"
+        },
+        {
+          "name": "Toplanan Adet",
+          "type": "number"
+        },
+        {
+          "name": "Hedef Adet",
+          "type": "number"
+        },
+        {
+          "name": "Süre (dk)",
+          "type": "number"
+        },
+        {
+          "name": "Hatalı Toplama",
+          "type": "number"
+        }
+      ],
+      "key_columns": [
+        "Tarih",
+        "İşlem Zamanı",
+        "Personel No",
+        "Bölge",
+        "Sipariş No",
+        "Toplanan Adet",
+        "Hedef Adet",
+        "Süre (dk)",
+        "Hatalı Toplama"
+      ],
+      "id": "r_bcac8893c2",
+      "workbook_hint": "",
+      "sheet_hint": "",
+      "min_score": 0.8,
+      "column_map": {},
+      "description": "Örnek: WMS > Raporlar > Toplama Performansı (sentetik)",
+      "updated": "2026-11-10T11:41:37"
+    }
+  }
+}
