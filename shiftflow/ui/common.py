@@ -165,8 +165,7 @@ class DataTable(QTableView):
             self.verticalScrollBar().valueChanged.connect(fv.verticalScrollBar().setValue)
             self.horizontalHeader().sectionResized.connect(self._frozen_resized)
             fv.horizontalHeader().setContextMenuPolicy(Qt.CustomContextMenu)
-            fv.horizontalHeader().customContextMenuRequested.connect(
-                lambda pos: self.horizontalHeader().customContextMenuRequested.emit(pos))
+            fv.horizontalHeader().customContextMenuRequested.connect(self._frozen_header_menu)
             self._frozen = fv
         for c in range(self.model_.columnCount()):
             fv.setColumnHidden(c, c >= n or self.isColumnHidden(c))
@@ -174,6 +173,20 @@ class DataTable(QTableView):
         fv.show()
         fv.raise_()
         self._frozen_geometry()
+
+    def _frozen_header_menu(self, pos):
+        # Dondurulmuş başlıktaki konum ana başlığa aynen aktarılırsa, tablo yatay kaydırılmışken
+        # ana başlık o noktada başka bir sütun bulur. Sütun burada bulunur ve menüye bildirilir.
+        self._header_menu_col = self._frozen.horizontalHeader().logicalIndexAt(pos)
+        try:
+            self.horizontalHeader().customContextMenuRequested.emit(pos)
+        finally:
+            self._header_menu_col = None
+
+    def header_column_at(self, pos) -> int:
+        """Başlık sağ tık menüsünün sütunu (dondurulmuş bölge dahil)."""
+        forced = getattr(self, "_header_menu_col", None)
+        return forced if forced is not None else self.horizontalHeader().logicalIndexAt(pos)
 
     def frozen_count(self) -> int:
         return getattr(self, "_frozen_n", 0)

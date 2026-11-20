@@ -1063,7 +1063,7 @@ class MainWindow(QMainWindow):
             self.add_step("filter", preset=str(df.columns[col_i]))
 
     def header_menu(self, pos):
-        col_i = self.table.horizontalHeader().logicalIndexAt(pos)
+        col_i = self.table.header_column_at(pos)
         df = self.table.model_.frame()
         if col_i < 0 or col_i >= df.shape[1]:
             return
