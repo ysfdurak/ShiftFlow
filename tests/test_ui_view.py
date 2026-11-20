@@ -92,7 +92,8 @@ def test_freeze_columns(w):
     assert not fv.isVisible()
 
 
-def test_trash_restore_from_dialog(qtbot, tmp_path):
+def test_trash_restore_from_dialog(qtbot, tmp_path, monkeypatch):
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.Yes)
     from datetime import date
     from shiftflow.engine import periods as pr
     from shiftflow.engine.archive import Archive

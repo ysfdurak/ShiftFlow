@@ -1059,6 +1059,20 @@ class JoinDialog(OpDialog):
     needs_name = True
     default_name = "Birleşik"
 
+    def _block_same_side(self, *_):
+        """Sağ listede soldaki küme seçilemez (önceden listede görünüp Uygula'da reddediliyordu)."""
+        left = self.left.currentText()
+        model = self.right.model()
+        for i in range(self.right.count()):
+            item = model.item(i) if hasattr(model, "item") else None
+            if item is not None:
+                item.setEnabled(self.right.itemText(i) != left)
+        if self.right.currentText() == left and self.right.count() > 1:
+            for i in range(self.right.count()):
+                if self.right.itemText(i) != left:
+                    self.right.setCurrentIndex(i)
+                    break
+
     def __init__(self, session, left=None, right=None, params=None, parent=None, name=None, inputs=None):
         self.session = session
         self.names = list(session.workflow.datasets)
@@ -1081,6 +1095,8 @@ class JoinDialog(OpDialog):
             self.right.setCurrentText(self._right0)
         elif len(self.names) > 1:
             self.right.setCurrentIndex(1 if self.left.currentIndex() == 0 else 0)
+        self._block_same_side()
+        self.left.currentIndexChanged.connect(self._block_same_side)
         self.how = QComboBox()
         for k, v in ops.JOIN_TYPES.items():
             self.how.addItem(v, k)

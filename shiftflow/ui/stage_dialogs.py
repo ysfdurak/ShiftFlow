@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QSpinBox,
@@ -1138,13 +1139,19 @@ class TrashDialog(QDialog):
     def restore(self):
         r = self.table.currentRow()
         if r < 0:
+            self.status.setText("Önce listeden geri yüklenecek kaydı seçin.")
             return
         src, tid = self.items[r][:2]
+        kind, label = self.items[r][2], self.items[r][3]
+        if QMessageBox.question(self, "Geri yükle", f"{kind}: “{label}” geri yüklensin mi?\n\n"
+                                "Aynı adla bir kayıt varsa geri gelen kaydın adına '(geri)' eklenir; hiçbir şey silinmez.") \
+                != QMessageBox.Yes:
+            return
         try:
             name = (self.library if src == "lib" else self.archive).restore(tid)
         except Exception as exc:  # noqa: BLE001
             from .common import show_error
             show_error(self, exc)
             return
-        self.status.setText(f"Geri yüklendi: {name}")
         self.refresh()
+        self.status.setText(f"✓ Geri yüklendi: {name}. Eski yerinde (rapor tanımları, referans tablolar veya arşiv) bulabilirsiniz.")
