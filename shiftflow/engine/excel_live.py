@@ -42,6 +42,7 @@ class WorkbookRef:
     path: str = ""
     saved: bool = True
     origin: str = "excel"  # "excel" | "file"
+    note: str = ""  # ör. "Korumalı Görünüm"
     sheets: list[SheetRef] = field(default_factory=list)
 
 
@@ -100,6 +101,18 @@ def _as_rows(value) -> list[list]:
     return [[_clean_value(c) for c in (row if isinstance(row, (tuple, list)) else (row,))] for row in value]
 
 
+def _resize(rng, nr: int, nc: int):
+    """Range'in sol üstünden nr x nc alanı.
+
+    pywin32 geç bağlamada `rng.Resize(a, b)` parametreli özelliği çağırmaz; varsayılan
+    üyeye (Item) gider ve tek hücre döner. Bu yüzden açık Excel önizlemesi, rapor tanıma
+    ve formül okuma tek hücreyle çalışıyordu. Doğru çağrı GetResize'dır."""
+    get = getattr(rng, "GetResize", None)
+    if get is not None:
+        return get(nr, nc)
+    return rng.Resize(nr, nc)
+
+
 # ---------------------------------------------------------------------- COM (Windows)
 class ComExcelProvider(Provider):
     name = "Açık Excel"
@@ -129,22 +142,33 @@ class ComExcelProvider(Provider):
             raise DataImportError(_com_message(exc), detail=str(exc)) from exc
         for ai, app in enumerate(apps):
             try:
-                books = list(app.Workbooks)
+                books = [(wb, "") for wb in app.Workbooks]
             except Exception as exc:
                 raise DataImportError(_com_message(exc), detail=str(exc)) from exc
-            for wb in books:
+            # Korumalı Görünüm'de (internetten/e-postadan gelen dosya) açık kitaplar Workbooks'ta
+            # görünmez; ProtectedViewWindows üzerinden salt okunur erişilir. Önceden bu kitaplar
+            # listede hiç çıkmıyordu.
+            try:
+                for pvw in getattr(app, "ProtectedViewWindows", None) or []:
+                    try:
+                        books.append((pvw.Workbook, "Korumalı Görünüm"))
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+            for wb, note in books:
                 try:
                     name = str(wb.Name)
                     path = str(wb.FullName) if wb.Path else ""
                     saved = bool(wb.Path)
                     wid = f"{ai}:{name}"
                     self._cache[wid] = wb
-                    ref = WorkbookRef(id=wid, name=name, path=path, saved=saved, origin="excel")
+                    ref = WorkbookRef(id=wid, name=name, path=path, saved=saved, origin="excel", note=note)
                     for ws in wb.Worksheets:
                         try:
                             ur = ws.UsedRange
                             nr, nc = int(ur.Rows.Count), int(ur.Columns.Count)
-                            pv = _as_rows(ur.Resize(min(nr, PREVIEW_ROWS), nc).Value) if nr and nc else []
+                            pv = _as_rows(_resize(ur, min(nr, PREVIEW_ROWS), nc).Value) if nr and nc else []
                             ref.sheets.append(SheetRef(str(ws.Name), pv, nr, nc))
                         except Exception:
                             continue  # grafik sayfası, korumalı sayfa vb.
@@ -172,7 +196,7 @@ class ComExcelProvider(Provider):
             ws = wb.Worksheets(sheet)
             ur = ws.UsedRange
             nr, nc = int(ur.Rows.Count), int(ur.Columns.Count)
-            rng = ur.Resize(min(nr, n), nc)
+            rng = _resize(ur, min(nr, n), nc)
             # .Formula İngilizce yazımı (virgül ayırıcı) verir; çevirici ikisini de tanır
             return FormulaGrid(int(getattr(ur, "Row", 1)), int(getattr(ur, "Column", 1)), _as_rows(rng.Formula))
         except DataImportError:

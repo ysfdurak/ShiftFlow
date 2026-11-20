@@ -59,9 +59,11 @@ def test_com_provider_reads_formulas():
                 Count = 0
             self.Rows, self.Columns = type("x", (), {"Count": len(rows)})(), type("y", (), {"Count": 2})()
 
-        def Resize(self, nr, nc):
-            r = R(self.rows[:nr])
-            return r
+        def GetResize(self, nr, nc):
+            return R(self.rows[:nr])
+
+        def Resize(self, nr, nc):  # pywin32 geç bağlama tuzağı: tek hücre
+            return R(self.rows[:1])
 
         @property
         def Formula(self):

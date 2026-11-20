@@ -173,7 +173,7 @@ class OpenReportsDialog(QDialog):
         self.info.setText(text)
         first = None
         for wb in self.workbooks:
-            top = QTreeWidgetItem([wb.name + ("" if wb.saved else "  (kaydedilmemiş)"), ""])
+            top = QTreeWidgetItem([wb.name + ("" if wb.saved else "  (kaydedilmemiş)") + (f"  ({wb.note})" if wb.note else ""), ""])
             top.setToolTip(0, wb.path or "Kaydedilmemiş kitap")
             self.tree.addTopLevelItem(top)
             for sh in wb.sheets:

@@ -29,8 +29,13 @@ class FakeRange:
         w = self.Columns.Count
         return tuple(tuple(list(r) + [None] * (w - len(r))) for r in self.rows)
 
-    def Resize(self, nr, nc):
+    def GetResize(self, nr, nc):
         return FakeRange([r[:nc] for r in self.rows[:nr]])
+
+    def Resize(self, nr, nc):
+        # Gerçek pywin32 geç bağlamada Resize(a, b) varsayılan üyeye (Item) gider ve
+        # tek hücre döndürür; doğru yol GetResize'dır. Sahte nesne de aynı tuzağı taşır.
+        return FakeRange([self.rows[0][:1]] if self.rows else [])
 
 
 class FakeSheet:
