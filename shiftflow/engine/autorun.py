@@ -22,7 +22,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 
 import pandas as pd
 
@@ -238,13 +238,34 @@ class ReportBuilder:
             sp.status = "needs_mapping"
             return
         sp.status = "changed" if (ch["extra"] or ch["type_changes"] or ch["order_changed"] or ch["auto_mapped"]) else "ok"
-        if self.library is not None and sp.mode not in ("reference", "archive"):
+        if self.library is not None and sp.mode not in ("reference", "archive") and self._is_periodic(sp):
             last = self.library.last_use(sp.key)
             if last and last[0] == rp.fingerprint(sp.df) and self._looks_stale(sp.source, last[2]):
                 sp.status, sp.stale_since = "stale", last[1]
                 when = sp.stale_since.replace("T", " ")[:16]
                 sp.messages.append(f"Bu veri {when} tarihli çalıştırmada (başka bir dönem için) kullanılanla "
                                    "birebir aynı. Rapor güncellenmemiş olabilir.")
+
+    def _is_periodic(self, sp: "SourcePlan") -> bool:
+        """Kaynak dönemden döneme değişen bir rapor mu?
+
+        Personel listesi gibi ana veriler her gün aynıdır; onlar için "son çalıştırmayla aynı
+        veri" uyarısı yanlış alarmdı. Dönem filtresiyle bölünen ya da içinde tarih sütunu olan
+        kaynaklar dönemsel sayılır; diğerleri (tarihsiz listeler) denetlenmez."""
+        if self._filtered_by_period(sp.source):
+            return True
+        df = sp.df
+        if df is None:
+            return True
+        for c in df.columns:
+            s = df[c]
+            if pd.api.types.is_datetime64_any_dtype(s):
+                return True
+            if s.dtype == object and len(s.dropna()):
+                sample = s.dropna().head(50)
+                if sample.map(lambda v: isinstance(v, (datetime, date))).mean() > 0.8:
+                    return True
+        return False
 
     def _looks_stale(self, source: str, last_period: str | None) -> bool:
         """Aynı içerik daha önce kullanıldıysa bu bir sorun mu?

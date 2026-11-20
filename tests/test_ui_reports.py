@@ -152,8 +152,10 @@ def test_one_click_build_and_next_day(env, monkeypatch, tmp_path, picking, staff
     assert len(w2.session.result("Toplama Raporu")) == 10  # açılışta açık rapordan yüklendi
     monkeypatch.setattr(rd.RunPlanDialog, "exec", lambda self: plan_opened.append(1) or QDialog.Rejected)
     w2.build_report()
-    # Personel listesi dünküyle aynı -> kontrol ekranı açılır (bayat veri uyarısı)
-    assert plan_opened
+    # Personel listesi (tarihsiz ana veri) dünküyle aynı olabilir; bu uyarı sebebi değildir.
+    # Toplama raporu yenilendiği için kontrol ekranı açılmadan oluşturulur.
+    assert not plan_opened
+    assert len(list((tmp_path / "cikti").iterdir())) == 2
 
 
 def test_plan_dialog_mapping_and_stale(env, monkeypatch, tmp_path, picking, staff, qtbot):
@@ -176,8 +178,8 @@ def test_plan_dialog_mapping_and_stale(env, monkeypatch, tmp_path, picking, staf
     d.map()  # önerilen eşleme (Toplanan Miktar -> Toplanan) kabul edilir
     assert not plans[0].blocking and any("Eşleme uygulandı" in m for m in plans[0].messages)
     d.table.selectRow(1)
-    assert plans[1].status == "stale" and d.b_stale.isEnabled()
-    d.accept_stale()
+    # personel listesi tarihsiz ana veri: dünküyle aynı olması uyarı değildir
+    assert plans[1].status == "ok" and not d.b_stale.isEnabled()
     assert d.ok.isEnabled()
     res = b.build(d.plans)
     assert res.ok

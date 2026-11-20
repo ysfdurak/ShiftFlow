@@ -195,9 +195,10 @@ def test_same_report_again_is_flagged_stale(lib, picking, staff, tmp_path):
     b = ReportBuilder(s, lib, prov, period=pr.make_period(date(2026, 11, 11), "Gündüz", pr.DEFAULT_SHIFTS))
     plans = b.plan()
     assert plans[0].status == "stale" and plans[0].blocking
+    assert plans[1].status == "ok"  # personel listesi (tarihsiz ana veri) her gün aynı olabilir
     with pytest.raises(ShiftFlowError):
         b.build(plans)
-    plans[0].accept_stale = plans[1].accept_stale = True
+    plans[0].accept_stale = True
     r2 = b.build(plans)
     assert r2.ok and any("aynı veriyle" in n for n in r2.notes)
 
