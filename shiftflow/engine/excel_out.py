@@ -141,6 +141,19 @@ def _add_rules(ws, df, row0, col0, rules, warnings):
                                                      fill=fill, font=font))
 
 
+_NO_SUM_WORDS = ("%", "oran", "yüzde", "yuzde", "ortalama", "ort.", "ratio", "rate", "percent", "skor", "puan")
+_ID_SUFFIX = (" no", "no", " id", "id", " kodu", " kod", " numarası", " numarasi")
+
+
+def _summable(name) -> bool:
+    """Toplamı anlamlı sütun mu? Yüzde/oran/ortalama ve kimlik (No, ID, Kod) sütunları toplanmaz:
+    önceden 'Gerçekleşme %' sütunu toplanıp 385,50 gibi anlamsız bir sayı yazılıyordu."""
+    low = str(name).strip().lower()
+    if any(w in low for w in _NO_SUM_WORDS):
+        return False
+    return not any(low == s.strip() or low.endswith(s) for s in _ID_SUFFIX)
+
+
 def _add_totals(ws, df, row0, col0):
     """Tablonun altına toplam satırı: ALTTOPLAM(109; …) — Excel'de filtrelenince yalnız görünenleri toplar."""
     from openpyxl.styles import Border, Font, Side
@@ -155,6 +168,9 @@ def _add_totals(ws, df, row0, col0):
         cell = ws.cell(row=r, column=col0 + j)
         s = df[c]
         if pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s):
+            if not _summable(c):
+                cell.border = top
+                continue
             L = get_column_letter(col0 + j)
             cell.value = f"=SUBTOTAL(109,{L}{first}:{L}{last})"
             cell.number_format = "#,##0" if (s.dropna() % 1 == 0).all() else "#,##0.00"
@@ -269,6 +285,11 @@ def _add_chart(ws, df: pd.DataFrame, row0: int, col0: int, spec: dict, sheet_lab
         idx = col0 + cols.index(v)
         ch.add_data(Reference(ws, min_col=idx, min_row=row0, max_row=row0 + n), titles_from_data=True)
     ch.set_categories(cats)
+    if typ != "pie":
+        # openpyxl eksenleri varsayılan olarak "silinmiş" yazar; gerçek Excel'de eksen etiketleri
+        # görünmüyordu (LibreOffice gösterdiği için testte fark edilmedi).
+        ch.x_axis.delete = False
+        ch.y_axis.delete = False
     if typ != "pie" and len(values) == 1:
         ch.legend = None
     if spec.get("position") == "below":

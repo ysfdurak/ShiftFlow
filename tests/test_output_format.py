@@ -21,7 +21,8 @@ def test_totals_and_rules(tmp_path):
         {"column": "Ad", "op": "=", "value": "b", "color": "green", "whole_row": True},
         {"column": "Yok", "op": ">", "value": "1"}]})])
     ws = load_workbook(p)["S"]
-    assert [c.value for c in ws[5]] == ["Toplam", "=SUBTOTAL(109,B2:B4)", "=SUBTOTAL(109,C2:C4)"]
+    # "Oran" toplanmaz (oranların toplamı anlamsız), "Adet" toplanır
+    assert [c.value for c in ws[5]] == ["Toplam", None, "=SUBTOTAL(109,C2:C4)"]
     assert ws.auto_filter.ref == "A1:C4"  # toplam satırı filtreye girmez
     rules = {str(r.sqref): [(x.type, x.operator, x.formula) for x in r.rules] for r in ws.conditional_formatting}
     assert rules["B2:B4"] == [("cellIs", "lessThan", ["0.9"])]
@@ -71,3 +72,18 @@ def test_open_in_excel_writes_temp(qtbot, tmp_path, monkeypatch):
     w.open_in_excel()
     files = os.listdir(tmp_path / "ShiftFlow")
     assert len(files) == 1 and files[0].startswith("Toplama_Gece") and opened
+
+
+def test_totals_skip_percent_and_id_columns_and_chart_axes_visible(tmp_path):
+    df = pd.DataFrame({"Personel": ["a", "b"], "Sipariş No": [101, 102], "Gerçekleşme %": [95.5, 110.0],
+                       "Toplanan Adet": [40, 60]})
+    s = Session()
+    s.add_source("T", df)
+    p = tmp_path / "g.xlsx"
+    s.export(str(p), [("T", "S", {"totals": True, "chart": {"type": "col", "category": "Personel",
+                                                             "values": ["Toplanan Adet"]}})])
+    ws = load_workbook(p)["S"]
+    assert [c.value for c in ws[4]] == ["Toplam", None, None, "=SUBTOTAL(109,D2:D3)"]
+    import zipfile
+    xml = zipfile.ZipFile(p).read("xl/charts/chart1.xml").decode()
+    assert 'delete val="1"' not in xml and xml.count('delete val="0"') == 2
