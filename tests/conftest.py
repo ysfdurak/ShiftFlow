@@ -61,6 +61,13 @@ def isolated_settings(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_startfile(monkeypatch):
+    """Windows'ta testler üretilen Excel/.eml dosyalarını gerçek uygulamada açmasın."""
+    import os
+    monkeypatch.setattr(os, "startfile", lambda *a, **k: None, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def no_blocking_message_box(monkeypatch):
     """Beklenmeyen bir hata/uyarı kutusu testi kilitlemesin: metniyle hemen düşsün."""
     try:

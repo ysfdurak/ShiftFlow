@@ -7,8 +7,10 @@ GitHub deposu açıldı; Windows CI'ın ilk çalışmasında çıkanlar düzelti
 - **Örnekle dene** temiz kurulumda da çalışır: sentetik örnek veri artık depoda. Örnek dosyalar eksikse hata kutusu yerine bilgi verilir.
 - Outlook kurulu değilse **Outlook'ta taslak aç** ve **Gönder** kapalı gelir; mail .eml olarak kaydedilebilir.
 - Kılavuzdaki ekran görüntüleri exe paketinde de var (`tools/ekran_goruntuleri.py` ile yeniden üretilir).
+- Excel çıktısında sütun genişliği kalın başlığı, filtre okunu ve binlik ayırıcılı sayıları hesaba katar (gerçek Excel'de "Toplanan", "Hatalı" başlıkları kesiliyordu).
+- Gerçek Windows + Excel denemesi: açık Excel'den iki kaynak okundu, rapor 3 sayfa ve grafikle üretildi ve Excel'de açıldı.
 - pandas 4 için eskiyen çağrılar değiştirildi (`day_of_week`, `read_excel`).
-- Testler: takılan test 120 sn'de düşer, beklenmeyen ileti kutusu testi kilitlemez, ayarlar kayıt defterine değil geçici dosyaya yazılır.
+- Testler: takılan test 120 sn'de düşer, beklenmeyen ileti kutusu testi kilitlemez, ayarlar kayıt defterine değil geçici dosyaya yazılır, Windows'ta testler üretilen dosyaları gerçek uygulamada açmaz.
 - Lisans: PolyForm Shield 1.0.0. `v*` etiketiyle sürüm paketi (zip + SHA-256) Sürümler sayfasına eklenir.
 
 ## 3.11.0 — 2026-11-20

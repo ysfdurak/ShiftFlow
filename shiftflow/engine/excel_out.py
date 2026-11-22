@@ -22,6 +22,7 @@ hazır duran grafikleri koruyamaz; ShiftFlow'un eklediği grafikler sorunsuzdur.
 
 from __future__ import annotations
 
+import math
 import os
 import re
 import zipfile
@@ -233,10 +234,22 @@ def _write_table(ws, df: pd.DataFrame, row0: int, col0: int, styled: bool, clear
         ws.freeze_panes = ws.cell(row=row0 + 1, column=col0)
         if len(df):
             ws.auto_filter.ref = f"{get_column_letter(col0)}{row0}:{get_column_letter(col0 + ncols - 1)}{row0 + len(df)}"
+        filt = 3 if len(df) else 0  # filtre oku başlık hücresinde ~3 karakter yer kaplar
         for j, col in enumerate(df.columns):
-            sample = [len(str(v)) for v in df[col].head(200) if not pd.isna(v)]
-            width = max([len(str(col))] + sample)
-            ws.column_dimensions[get_column_letter(col0 + j)].width = min(max(width + 2, 8), 50)
+            sample = [_shown_len(v, num_fmt.get(j)) for v in df[col].head(200) if not pd.isna(v)]
+            head = len(str(col)) * 1.1 + filt  # başlık kalın yazılır
+            width = max([head] + [x + 2 for x in sample])
+            ws.column_dimensions[get_column_letter(col0 + j)].width = min(max(math.ceil(width), 8), 50)
+
+
+def _shown_len(v, fmt) -> int:
+    """Hücrede görünen metnin yaklaşık uzunluğu (binlik ayırıcı ve ondalıklar dahil)."""
+    if fmt and isinstance(v, (int, float)) and not isinstance(v, bool):
+        try:
+            return len(f"{v:,.2f}" if fmt.endswith(".00") else f"{v:,.0f}")
+        except (TypeError, ValueError):
+            pass
+    return len(str(v))
 
 
 def _add_chart(ws, df: pd.DataFrame, row0: int, col0: int, spec: dict, sheet_label: str, warnings: list):

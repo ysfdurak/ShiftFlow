@@ -275,13 +275,16 @@ def test_mail_send_cancelled_does_not_send(env, tmp_path, monkeypatch, qtbot):
     assert ("display", "a@b.com") in log and d.result_action == "draft"
 
 
-def test_mail_preview_without_outlook_offers_eml(qtbot, tmp_path):
+def test_mail_preview_without_outlook_offers_eml(qtbot, tmp_path, monkeypatch):
+    # Outlook kurulu bilgisayarda da "Outlook yok" durumu sınansın; .eml dosyası da açılmasın.
+    monkeypatch.setattr(mailer.OutlookMailer, "available", lambda self: (False, "Outlook yok"))
+    monkeypatch.setattr(sg.os, "startfile", lambda *a, **k: None, raising=False)
     f = tmp_path / "r.xlsx"
     f.write_bytes(b"x")
     d = sg.MailPreviewDialog(mailer.MailDraft(to=["a@b.com"], subject="S", html="x", attachments=[str(f)]),
                              mailer.OutlookMailer(), None)
     qtbot.addWidget(d)
-    assert not d.b_send.isEnabled() and not d.b_draft.isEnabled()  # Linux: Outlook yok
+    assert not d.b_send.isEnabled() and not d.b_draft.isEnabled()
     d.open_eml()
     assert d.result_action == "eml" and d.eml_path.endswith(".eml")
 

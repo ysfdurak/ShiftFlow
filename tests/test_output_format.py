@@ -87,3 +87,16 @@ def test_totals_skip_percent_and_id_columns_and_chart_axes_visible(tmp_path):
     import zipfile
     xml = zipfile.ZipFile(p).read("xl/charts/chart1.xml").decode()
     assert 'delete val="1"' not in xml and xml.count('delete val="0"') == 2
+
+
+def test_column_width_fits_bold_header_with_filter_and_thousands():
+    """Başlık kalın ve filtre oklu; '31.488' gibi binlikli sayı da sığmalı (gerçek Excel'de kesiliyordu)."""
+    from openpyxl import Workbook
+    from shiftflow.engine.excel_out import _write_table
+    ws = Workbook().active
+    df = pd.DataFrame({"Toplanan Adet": [31488, 14241], "Hatalı": [260, 140], "Açıklama": ["uzun bir not metni", "x"]})
+    _write_table(ws, df, 1, 1, True, False)
+    w = {c: ws.column_dimensions[c].width for c in "ABC"}
+    assert w["A"] >= len("Toplanan Adet") * 1.1 + 3
+    assert w["B"] >= len("Hatalı") * 1.1 + 3
+    assert w["C"] >= len("uzun bir not metni") + 2
