@@ -39,8 +39,12 @@ def test_ribbon_has_all_step_actions(w):
     scale = max(1.0, fm_h / 16)
     for title, bar in w.ribbon_bars.items():
         w.ribbon.setCurrentWidget(bar)
-        need = sum(bar.widgetForAction(a).sizeHint().width() for a in bar.actions() if bar.widgetForAction(a))
-        assert need < 1366 * scale, f"{title}: {need} px, yazı yüksekliği {fm_h}, dpi {w.logicalDpiX()}"
+        ws = [(bar.widgetForAction(a).sizeHint().width(), a.text()) for a in bar.actions() if bar.widgetForAction(a)]
+        need = sum(x for x, _ in ws)
+        from PySide6.QtWidgets import QApplication
+        assert need < 1366 * scale, (f"{title}: {need} px, yazı yüksekliği {fm_h}, dpi {w.logicalDpiX()}, "
+                                     f"stil {QApplication.style().name()}, yazı {w.font().family()} "
+                                     f"'Dosya aç'={w.fontMetrics().horizontalAdvance('Dosya aç')} {ws}")
 
 
 def test_find_next_and_prev(w):
