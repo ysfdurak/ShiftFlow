@@ -1,5 +1,16 @@
 # Değişiklik günlüğü
 
+## 3.11.1 — 2026-11-22
+
+GitHub deposu açıldı; Windows CI'ın ilk çalışmasında çıkanlar düzeltildi.
+
+- **Örnekle dene** temiz kurulumda da çalışır: sentetik örnek veri artık depoda. Örnek dosyalar eksikse hata kutusu yerine bilgi verilir.
+- Outlook kurulu değilse **Outlook'ta taslak aç** ve **Gönder** kapalı gelir; mail .eml olarak kaydedilebilir.
+- Kılavuzdaki ekran görüntüleri exe paketinde de var (`tools/ekran_goruntuleri.py` ile yeniden üretilir).
+- pandas 4 için eskiyen çağrılar değiştirildi (`day_of_week`, `read_excel`).
+- Testler: takılan test 120 sn'de düşer, beklenmeyen ileti kutusu testi kilitlemez, ayarlar kayıt defterine değil geçici dosyaya yazılır.
+- Lisans: PolyForm Shield 1.0.0. `v*` etiketiyle sürüm paketi (zip + SHA-256) Sürümler sayfasına eklenir.
+
 ## 3.11.0 — 2026-11-20
 
 Gerçek Windows bilgisayarda uçtan uca denemeden çıkan düzeltmeler ve sade düzen.

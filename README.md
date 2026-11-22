@@ -30,7 +30,7 @@ Veriler yalnızca bu bilgisayarda işlenir. Hiçbir veri dış servise gönderil
 
 **Hazır paket:** [Sürümler (Releases)](https://github.com/ysfdurak/ShiftFlow/releases) sayfasından `ShiftFlow-windows-<sürüm>.zip` dosyasını indirip açın ve `ShiftFlow.exe`'yi çalıştırın; Python kurmak gerekmez.
 
-**GitHub üzerinden otomatik paket:** Her gönderimde `.github/workflows/windows.yml` devreye girer. Testleri gerçek bir Windows makinesinde çalıştırır, .exe'yi üretir ve açılış testini yapar. Paket, Actions sayfasının "Artifacts" bölümünden indirilir. `v3.11.0` gibi bir sürüm etiketi gönderildiğinde aynı paket zip olarak Sürümler sayfasına da eklenir.
+**GitHub üzerinden otomatik paket:** Her gönderimde `.github/workflows/windows.yml` devreye girer. Testleri gerçek bir Windows makinesinde çalıştırır, .exe'yi üretir ve açılış testini yapar. Paket, Actions sayfasının "Artifacts" bölümünden indirilir. `v3.11.1` gibi bir sürüm etiketi gönderildiğinde ya da GitHub'da bu etiketle sürüm yayımlandığında aynı paket zip olarak Sürümler sayfasına da eklenir.
 
 ## Deneme verisi
 
