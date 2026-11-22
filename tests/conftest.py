@@ -61,6 +61,19 @@ def isolated_settings(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_blocking_message_box(monkeypatch):
+    """Beklenmeyen bir hata/uyarı kutusu testi kilitlemesin: metniyle hemen düşsün."""
+    try:
+        from PySide6.QtWidgets import QMessageBox
+    except Exception:  # PySide6 yoksa
+        return
+
+    def _fail(self, *a, **k):
+        raise AssertionError(f"Beklenmeyen ileti kutusu: {self.text()} {self.informativeText()}".strip())
+    monkeypatch.setattr(QMessageBox, "exec", _fail)
+
+
+@pytest.fixture(autouse=True)
 def no_variant_prompt(monkeypatch):
     """Farklı yazılış sorusu testlerde pencere açmasın (varsayılan: 'Şimdi değil')."""
     try:

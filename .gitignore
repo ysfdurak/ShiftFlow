@@ -5,7 +5,7 @@ build/
 dist/
 .pytest_cache/
 ekran/
-ornekler/veri/
+ornekler/veri/*
 # Gerçek şirket verisi depoya eklenmez
 *.xlsx
 *.xls
@@ -15,3 +15,7 @@ ornekler/veri/
 # Tarayıcı demosu (üretilen)
 web/dist/
 .sfweb_dev/
+
+# Sentetik örnek veri ("Örnekle dene" ve exe paketi için gerekli)
+!ornekler/veri/toplama_raporu_gun1.xlsx
+!ornekler/veri/personel_listesi.xlsx

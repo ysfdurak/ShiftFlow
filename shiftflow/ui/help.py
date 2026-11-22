@@ -41,13 +41,17 @@ def docs_dir() -> str:
     return cands[-1]
 
 
+SAMPLE_DATA = ("toplama_raporu_gun1.xlsx", "personel_listesi.xlsx")
+
+
 def sample_workflow() -> str | None:
     """Program klasöründeki örnek iş akışı (ornekler/ornek_vardiya_akisi.json); yoksa None."""
     base = getattr(sys, "_MEIPASS", None)
     here = os.path.dirname(os.path.abspath(__file__))
     for root in ([base] if base else []) + [os.path.normpath(os.path.join(here, "..", ".."))]:
         path = os.path.join(root, "ornekler", "ornek_vardiya_akisi.json")
-        if os.path.exists(path):
+        veri = os.path.join(root, "ornekler", "veri")
+        if os.path.exists(path) and all(os.path.exists(os.path.join(veri, f)) for f in SAMPLE_DATA):
             return path
     return None
 
