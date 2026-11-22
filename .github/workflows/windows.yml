@@ -83,7 +83,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-            --title "ShiftFlow $GITHUB_REF_NAME" \
-            --notes "Windows paketi. Zip'i açın, ShiftFlow.exe'yi çalıştırın. Değişiklikler için CHANGELOG.md." \
-            ShiftFlow-windows-*.zip ShiftFlow-windows-*.zip.sha256
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Sürüm GitHub sayfasından açıldıysa dosyaları ona ekler.
+            gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber \
+              ShiftFlow-windows-*.zip ShiftFlow-windows-*.zip.sha256
+          else
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --title "ShiftFlow $GITHUB_REF_NAME" \
+              --notes "Windows paketi. Zip'i açın, ShiftFlow.exe'yi çalıştırın. Değişiklikler için CHANGELOG.md." \
+              ShiftFlow-windows-*.zip ShiftFlow-windows-*.zip.sha256
+          fi
