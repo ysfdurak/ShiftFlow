@@ -48,3 +48,13 @@ def test_conditional_has_editor_buttons(qtbot):
     qtbot.addWidget(d)
     assert d.then.parent() is not None and hasattr(d.then.parent(), "editor_button")
     assert QDialog is not None
+
+
+def test_guide_images_exist():
+    """Kılavuzdaki her görüntü docs/ klasöründe var (exe paketi de bunları taşır)."""
+    import os
+    import re
+    docs = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs")
+    md = open(os.path.join(docs, "KULLANIM_KILAVUZU.md"), encoding="utf-8").read()
+    refs = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", md)
+    assert refs and all(os.path.exists(os.path.join(docs, r)) for r in refs), refs
