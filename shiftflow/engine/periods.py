@@ -93,7 +93,9 @@ class Period:
 
     @property
     def label(self) -> str:
-        span = f"{self.start:%H:%M}–{self.end:%H:%M}"
+        # Gece yarısında biten dönem "24:00" ile gösterilir ("Tüm gün (00:00–00:00)" yanlış okunuyordu).
+        end = "24:00" if self.end.time() == time(0, 0) and self.end.date() > self.start.date() else f"{self.end:%H:%M}"
+        span = f"{self.start:%H:%M}–{end}"
         return f"{self.date:%d.%m.%Y} · {self.shift_label} ({span})"
 
     def context(self) -> dict:

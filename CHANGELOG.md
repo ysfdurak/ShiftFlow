@@ -9,6 +9,7 @@ GitHub deposu açıldı; Windows CI'ın ilk çalışmasında çıkanlar düzelti
 - Kılavuzdaki ekran görüntüleri exe paketinde de var (`tools/ekran_goruntuleri.py` ile yeniden üretilir).
 - Excel çıktısında sütun genişliği kalın başlığı, filtre okunu ve binlik ayırıcılı sayıları hesaba katar (gerçek Excel'de "Toplanan", "Hatalı" başlıkları kesiliyordu).
 - Gerçek Windows + Excel denemesi: açık Excel'den iki kaynak okundu, rapor 3 sayfa ve grafikle üretildi ve Excel'de açıldı.
+- Dönem etiketinde gece yarısı 24:00 olarak yazılır (mail ve dosyada "Tüm gün (00:00–00:00)" görünüyordu).
 - pandas 4 için eskiyen çağrılar değiştirildi (`day_of_week`, `read_excel`).
 - Testler: takılan test 120 sn'de düşer, beklenmeyen ileti kutusu testi kilitlemez, ayarlar kayıt defterine değil geçici dosyaya yazılır, Windows'ta testler üretilen dosyaları gerçek uygulamada açmaz.
 - Lisans: PolyForm Shield 1.0.0. `v*` etiketiyle sürüm paketi (zip + SHA-256) Sürümler sayfasına eklenir.

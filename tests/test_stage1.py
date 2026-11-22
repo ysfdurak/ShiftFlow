@@ -196,3 +196,12 @@ def test_missing_reference_blocks(lib, moves, locs):
     s.add_source("Lokasyonlar", locs, kind="reference", reference_id="t_yok")
     plans = ReportBuilder(s, lib, None).plan()
     assert plans[0].status == "error" and plans[0].blocking
+
+
+def test_period_label_shows_midnight_as_24():
+    from datetime import date
+    from shiftflow.engine import periods as pr
+    p = pr.make_period(date(2026, 11, 1), None, pr.DEFAULT_SHIFTS)
+    assert p.label == "01.11.2026 · Tüm gün (00:00–24:00)"
+    aksam = pr.make_period(date(2026, 11, 1), "Akşam", pr.DEFAULT_SHIFTS)
+    assert aksam.label.endswith("(16:00–24:00)")
