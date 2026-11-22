@@ -81,3 +81,22 @@ def no_variant_prompt(monkeypatch):
     except Exception:  # PySide6 yoksa
         return
     monkeypatch.setattr(MainWindow, "ask_variant_fix", lambda self, lines, at_input: "later")
+
+
+_EXIT = {"status": 0}
+
+
+def pytest_sessionfinish(session, exitstatus):
+    _EXIT["status"] = int(exitstatus)
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_unconfigure(config):
+    """Windows'ta Qt nesneleri yorumlayıcı kapanırken ara sıra düzensiz çıkış kodu veriyor
+    (406 test geçtiği hâlde süreç 1 ile bitti). Sonuç yazıldıktan sonra pytest'in kendi kodu ile çıkılır."""
+    import os
+    import sys
+    if sys.platform == "win32":
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(_EXIT["status"])
