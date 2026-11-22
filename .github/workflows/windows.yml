@@ -37,7 +37,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           SHIFTFLOW_SCREENSHOT_DIR: ekran
-        run: python -m pytest -q
+        run: python -m pytest -v -p no:cacheprovider
       - name: Örnek verilerle uçtan uca çalıştırma
         run: |
           python ornekler/ornek_veri_olustur.py

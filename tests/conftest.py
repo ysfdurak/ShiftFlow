@@ -49,6 +49,18 @@ def isolated_appdata(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def isolated_settings(tmp_path, monkeypatch):
+    """Testler gerçek ayarlara (Windows'ta kayıt defteri) yazmasın; her test temiz ayarla başlar."""
+    try:
+        from PySide6.QtCore import QSettings
+        from shiftflow.ui import main_window as mw
+    except Exception:  # PySide6 yoksa
+        return
+    ini = str(tmp_path / "ayarlar.ini")
+    monkeypatch.setattr(mw, "QSettings", lambda *a, **k: QSettings(ini, QSettings.IniFormat))
+
+
+@pytest.fixture(autouse=True)
 def no_variant_prompt(monkeypatch):
     """Farklı yazılış sorusu testlerde pencere açmasın (varsayılan: 'Şimdi değil')."""
     try:
