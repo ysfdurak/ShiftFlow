@@ -72,6 +72,16 @@ def main(argv=None) -> int:
                              f"Hata: {etype.__name__}\nAyrıntı günlüğü: {_log_path()}")
 
     sys.excepthook = excepthook
+    smoke = os.environ.get("SHIFTFLOW_SMOKE_QUIT_MS")
+    if smoke:  # CI: pencereyi açıp kendiliğinden kapanır; çıkış kodunun 0 olduğu denetlenir
+        from PySide6.QtCore import QTimer
+
+        def _kapat():  # karşılama penceresi (iç içe döngü) ve ana pencere sırayla kapanana kadar tekrarlar
+            app.closeAllWindows()
+            app.quit()
+        smoke_timer = QTimer()
+        smoke_timer.timeout.connect(_kapat)
+        smoke_timer.start(int(smoke))
     win = MainWindow()
     win.show()
     args = (argv if argv is not None else sys.argv)[1:]
@@ -84,7 +94,13 @@ def main(argv=None) -> int:
         elif os.path.exists(a):
             win.open_file(a)
     del Qt
-    return app.exec()
+    rc = app.exec()
+    # Pencere QApplication'dan önce yok edilsin (Windows'ta kapanışta erişim hatasını önler).
+    win.deleteLater()
+    del win
+    import gc
+    gc.collect()
+    return rc
 
 
 if __name__ == "__main__":

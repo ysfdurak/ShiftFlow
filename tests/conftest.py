@@ -92,11 +92,13 @@ def pytest_sessionfinish(session, exitstatus):
 
 @pytest.hookimpl(trylast=True)
 def pytest_unconfigure(config):
-    """Windows'ta Qt nesneleri yorumlayıcı kapanırken ara sıra düzensiz çıkış kodu veriyor
-    (406 test geçtiği hâlde süreç 1 ile bitti). Sonuç yazıldıktan sonra pytest'in kendi kodu ile çıkılır."""
-    import os
+    """Ekransız Windows'ta yüzlerce test penceresinden sonra süreç kapanırken (DLL boşaltma) erişim hatası
+    alınıyor; testlerin hepsi geçse de çıkış kodu bozuluyor. Sonuç yazıldıktan sonra süreç pytest'in
+    kendi koduyla, DLL boşaltma adımı atlanarak sonlandırılır. Yalnız test ortamı içindir."""
     import sys
     if sys.platform == "win32":
+        import ctypes
         sys.stdout.flush()
         sys.stderr.flush()
-        os._exit(_EXIT["status"])
+        k = ctypes.windll.kernel32
+        k.TerminateProcess(k.GetCurrentProcess(), _EXIT["status"])
