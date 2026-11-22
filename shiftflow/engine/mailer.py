@@ -196,6 +196,8 @@ class OutlookMailer:
             import win32com.client  # noqa: F401
         except ImportError:
             return False, "pywin32 kurulu değil."
+        if not _outlook_registered():
+            return False, "Outlook bu bilgisayarda kurulu değil. Mail'i .eml dosyası olarak kaydedebilirsiniz."
         return True, ""
 
     def has_profile(self) -> bool:
@@ -269,3 +271,17 @@ class OutlookMailer:
             item.Send()
         except Exception as exc:
             raise ShiftFlowError("Mail gönderilemedi.", detail=str(exc)) from exc
+
+
+def _outlook_registered() -> bool:
+    """Outlook.Application COM sınıfı kayıtlı mı? Okunamazsa engellemez (True)."""
+    if sys.platform != "win32":
+        return False
+    try:  # pragma: no cover - yalnız Windows
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"Outlook.Application\CLSID"):
+            return True
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True

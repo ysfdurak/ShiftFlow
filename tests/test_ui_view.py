@@ -32,11 +32,15 @@ def test_ribbon_has_all_step_actions(w):
     for a in list(w.step_actions.values()) + list(w.extra_step_actions.values()) + [w.a_group, w.a_pivot,
                                                                                     w.a_join, w.a_xl_columns]:
         assert a in in_ribbon, a.text()
-    # dar ekranda her sekme sığmalı (gizli düğme kalmasın)
+    # dar ekranda (1366 px, %100 ölçek) her sekme sığmalı (gizli düğme kalmasın).
+    # Ekransız Windows'ta yazı tipi piksel boyu farklı çıkabildiği için ölçü yazı yüksekliğine göre ölçeklenir
+    # (9 pt Segoe UI / DejaVu, 96 dpi'de ~16 px).
+    fm_h = w.fontMetrics().height()
+    scale = max(1.0, fm_h / 16)
     for title, bar in w.ribbon_bars.items():
         w.ribbon.setCurrentWidget(bar)
         need = sum(bar.widgetForAction(a).sizeHint().width() for a in bar.actions() if bar.widgetForAction(a))
-        assert need < 1366, title
+        assert need < 1366 * scale, f"{title}: {need} px, yazı yüksekliği {fm_h}, dpi {w.logicalDpiX()}"
 
 
 def test_find_next_and_prev(w):

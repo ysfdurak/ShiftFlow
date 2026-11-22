@@ -1,5 +1,6 @@
 """Aşama 2-4: vardiya/dönem, arşiv, grafik ve şablon, mail taslağı."""
 
+import os
 import email
 from datetime import date, datetime
 
@@ -281,7 +282,7 @@ def test_mail_draft_and_eml(lib, arc, tmp_path):
     eml = mailer.save_eml(d, str(tmp_path / "taslak"))
     msg = email.message_from_bytes(open(eml, "rb").read())
     assert msg["X-Unsent"] == "1" and "gece.lideri@firma.com" in msg["To"]
-    assert any(part.get_filename() == res.path.split("/")[-1] for part in msg.walk())
+    assert any(part.get_filename() == os.path.basename(res.path) for part in msg.walk())
 
 
 def test_mail_disabled_or_invalid(lib, arc, tmp_path):

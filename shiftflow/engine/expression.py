@@ -590,7 +590,7 @@ def _int_arg(ctx, args, i, default):
 def _weekday(ctx, args):
     d = _dt(args[0], ctx, "HAFTANINGÜNÜ")
     typ = _int_arg(ctx, args, 1, 1)
-    wd = d.dt.weekday  # pazartesi=0
+    wd = d.dt.day_of_week  # pazartesi=0
     return (wd + 1) if typ == 2 else ((wd + 1) % 7 + 1)
 
 

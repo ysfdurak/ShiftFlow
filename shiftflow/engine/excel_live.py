@@ -284,7 +284,7 @@ class FileWorkbookProvider(Provider):
                     with pd.ExcelFile(p, engine=sio.excel_engine()) as xf:
                         sheets = {}
                         for s in xf.sheet_names:
-                            raw = xf.parse(s, header=None, dtype=object)
+                            raw = pd.read_excel(xf, s, header=None, dtype=object)
                             sheets[s] = [[None if (isinstance(v, float) and pd.isna(v)) else
                                           (v.to_pydatetime() if isinstance(v, pd.Timestamp) else v) for v in r]
                                          for r in raw.itertuples(index=False)]

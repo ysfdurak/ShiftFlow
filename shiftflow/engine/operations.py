@@ -1099,7 +1099,7 @@ def _date_group(s: pd.Series, how: str) -> pd.Series:
     elif how == "month":
         out = d.map(lambda x: None if pd.isna(x) else f"{x.year}-{x.month:02d}")
     elif how == "weekday":
-        out = d.dt.weekday.map(lambda w: None if pd.isna(w) else _WEEKDAYS[int(w)])
+        out = d.dt.day_of_week.map(lambda w: None if pd.isna(w) else _WEEKDAYS[int(w)])
     elif how == "year":
         out = d.dt.year.map(lambda y: None if pd.isna(y) else int(y))
     else:
