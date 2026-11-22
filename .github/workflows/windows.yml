@@ -41,7 +41,11 @@ jobs:
           SHIFTFLOW_SCREENSHOT_DIR: ekran
         run: |
           python -X faulthandler -m pytest -v -p no:cacheprovider -rA --junitxml=pytest.xml | Tee-Object -FilePath pytest.log | Select-String -NotMatch ' PASSED '
-          Write-Host "pytest çıkış kodu: $LASTEXITCODE"
+          $kod = $LASTEXITCODE
+          Write-Host "pytest çıkış kodu: $kod"
+          # Ekransız Qt, testler bittikten sonra süreç kapanırken ara sıra erişim hatası (0xC0000005) veriyor.
+          # Sonuç bu yüzden JUnit raporundan okunur: en az bir test çalışmış, hata/başarısız sıfır olmalı.
+          python -c "import sys,xml.etree.ElementTree as E; r=E.parse('pytest.xml').getroot(); s=r.find('testsuite') if r.tag=='testsuites' else r; t,f,e=(int(s.get(k,0)) for k in ('tests','failures','errors')); print(f'JUnit: {t} test, {f} basarisiz, {e} hata'); sys.exit(0 if t>0 and f==0 and e==0 else 1)"
           exit $LASTEXITCODE
       - name: Örnek verilerle uçtan uca çalıştırma
         run: |
