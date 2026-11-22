@@ -39,7 +39,10 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           SHIFTFLOW_SCREENSHOT_DIR: ekran
-        run: python -m pytest -v -p no:cacheprovider
+        run: |
+          python -X faulthandler -m pytest -v -p no:cacheprovider -rA --junitxml=pytest.xml | Tee-Object -FilePath pytest.log | Select-String -NotMatch ' PASSED '
+          Write-Host "pytest çıkış kodu: $LASTEXITCODE"
+          exit $LASTEXITCODE
       - name: Örnek verilerle uçtan uca çalıştırma
         run: |
           python ornekler/ornek_veri_olustur.py
