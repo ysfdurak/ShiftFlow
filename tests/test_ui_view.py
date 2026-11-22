@@ -33,10 +33,10 @@ def test_ribbon_has_all_step_actions(w):
                                                                                     w.a_join, w.a_xl_columns]:
         assert a in in_ribbon, a.text()
     # dar ekranda (1366 px, %100 ölçek) her sekme sığmalı (gizli düğme kalmasın).
-    # Ekransız Windows'ta yazı tipi piksel boyu farklı çıkabildiği için ölçü yazı yüksekliğine göre ölçeklenir
-    # (9 pt Segoe UI / DejaVu, 96 dpi'de ~16 px).
+    # Ekransız (offscreen) Windows'ta yazı tipi veritabanı boş kalır ve yedek yazı tipi gerçek Segoe UI'dan
+    # çok daha geniş çizer; ölçü bu yüzden "Dosya aç" genişliğine göre ölçeklenir (9 pt'de ~47-53 px).
     fm_h = w.fontMetrics().height()
-    scale = max(1.0, fm_h / 16)
+    scale = max(1.0, w.fontMetrics().horizontalAdvance("Dosya aç") / 53)
     for title, bar in w.ribbon_bars.items():
         w.ribbon.setCurrentWidget(bar)
         ws = [(bar.widgetForAction(a).sizeHint().width(), a.text()) for a in bar.actions() if bar.widgetForAction(a)]
