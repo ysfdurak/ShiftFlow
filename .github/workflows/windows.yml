@@ -5,14 +5,26 @@ name: Windows test ve paket
 
 on:
   push:
+    branches: ["**"]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   windows:
     runs-on: windows-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -49,3 +61,29 @@ jobs:
         with:
           name: ekran-goruntuleri
           path: ekran
+
+  # v* etiketiyle gönderildiğinde paketi zip olarak Sürümler sayfasına koyar.
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ShiftFlow-windows
+          path: ShiftFlow
+      - name: Zip ve sağlama toplamı
+        run: |
+          ZIP="ShiftFlow-windows-${GITHUB_REF_NAME}.zip"
+          zip -qr "$ZIP" ShiftFlow
+          sha256sum "$ZIP" > "$ZIP.sha256"
+      - name: Sürüm oluştur
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            --title "ShiftFlow $GITHUB_REF_NAME" \
+            --notes "Windows paketi. Zip'i açın, ShiftFlow.exe'yi çalıştırın. Değişiklikler için CHANGELOG.md." \
+            ShiftFlow-windows-*.zip ShiftFlow-windows-*.zip.sha256

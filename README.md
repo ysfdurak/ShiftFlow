@@ -28,7 +28,9 @@ Veriler yalnızca bu bilgisayarda işlenir. Hiçbir veri dış servise gönderil
 
 **.exe paketi oluşturma:** `exe_olustur.bat` dosyasına çift tıklayın. Bu dosya önce testleri çalıştırır, sonra `dist\ShiftFlow\ShiftFlow.exe` dosyasını üretir. `dist\ShiftFlow` klasörü Python kurulu olmayan başka bir bilgisayara kopyalanıp kullanılabilir.
 
-**GitHub üzerinden otomatik paket:** Proje bir GitHub deposuna gönderildiğinde `.github/workflows/windows.yml` devreye girer. Testleri gerçek bir Windows makinesinde çalıştırır, .exe'yi üretir ve açılış testini yapar. Paket, Actions sayfasının "Artifacts" bölümünden indirilir.
+**Hazır paket:** [Sürümler (Releases)](https://github.com/ysfdurak/ShiftFlow/releases) sayfasından `ShiftFlow-windows-<sürüm>.zip` dosyasını indirip açın ve `ShiftFlow.exe`'yi çalıştırın; Python kurmak gerekmez.
+
+**GitHub üzerinden otomatik paket:** Her gönderimde `.github/workflows/windows.yml` devreye girer. Testleri gerçek bir Windows makinesinde çalıştırır, .exe'yi üretir ve açılış testini yapar. Paket, Actions sayfasının "Artifacts" bölümünden indirilir. `v3.11.0` gibi bir sürüm etiketi gönderildiğinde aynı paket zip olarak Sürümler sayfasına da eklenir.
 
 ## Deneme verisi
 
@@ -66,3 +68,25 @@ python -m pytest -q
 ```
 
 Testler motoru (işlemler, birleştirme, pivot, iş akışı, JSON, hata durumları) ve arayüzü (ekransız Qt ile gerçek diyaloglar ve pencere akışları) kapsar.
+
+## Lisans
+
+Bu proje [PolyForm Shield 1.0.0](LICENSE.md) lisansıyla yayınlanır. Kaynak kodu açıktır, ancak resmi anlamda bir "açık kaynak" lisansı değildir.
+
+- **Serbest:** Kişiler, okullar ve şirketler kendi işlerinde ücretsiz kullanabilir, değiştirebilir ve kendi bilgisayarlarına ya da sunucularına kurabilir. İzin almak gerekmez.
+- **Yazılı izin gerekir:** Yazılımı satmak, adını değiştirip ürün gibi sunmak ya da bununla (ücretsiz olsa bile) rakip bir ürün veya hizmet sunmak.
+- **Garanti yok:** Yazılım olduğu gibi sunulur. Bağlayıcı olan İngilizce lisans metnidir.
+- Üçüncü taraf bileşenler kendi lisanslarına tabidir.
+
+Kurumunuzda kullanıyorsanız haber verirseniz sevinirim: kurulumda yardımcı olabilir, kurumunuza özel ihtiyaçları birlikte değerlendirebiliriz. İletişim: iletisim@ysfdurak.com
+
+### License (English)
+
+Released under [PolyForm Shield 1.0.0](LICENSE.md). The source is available, but this is not an OSI "open source" licence.
+
+- **Free:** individuals, schools and companies may use it in their own work, change it and run it on their own computers or servers. No permission needed.
+- **Needs written permission:** selling it, rebranding it as a product, or providing a product or service that competes with it (even free of charge).
+- **No warranty:** provided as is. The English licence text is binding.
+- Third-party components keep their own licences.
+
+Using it in your organisation? I'd be glad to hear from you: I can help with setup and look at your organisation's needs together. Contact: contact@ysfdurak.com
