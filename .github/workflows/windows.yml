@@ -65,11 +65,11 @@ jobs:
           if (-not $p.WaitForExit(30000)) { Stop-Process -Id $p.Id -Force; Write-Error "ShiftFlow.exe kapanmadı"; exit 1 }
           Write-Host "Çıkış kodu: $($p.ExitCode)"
           if ($p.ExitCode -ne 0) { Write-Error "ShiftFlow.exe kapanırken hata verdi (kod $($p.ExitCode))"; exit 1 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ShiftFlow-windows
           path: dist/ShiftFlow
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: ekran-goruntuleri
