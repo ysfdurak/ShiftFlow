@@ -39,7 +39,7 @@ Canlı adres: **https://shiftflow.ysfdurak.com/**. Depo Cloudflare Workers'a ba�
 birleştirmede Cloudflare `python3 web/build_web.py` çalıştırıp `web/dist` klasörünü yayınlar
 (`wrangler.jsonc`). Diğer dallar önizleme adresine gider.
 
-İlk bağlantı (bir kez): Cloudflare panelinde **Workers & Pages → Create → Import a repository →
+İlk bağlantı (23 Kasım 2026'da yapıldı; yeniden kurmak gerekirse): Cloudflare panelinde **Workers & Pages → Create → Import a repository →
 ysfdurak/ShiftFlow**; proje adı `shiftflow`, derleme komutu `python3 web/build_web.py`, dağıtım
 komutu varsayılan (`npx wrangler deploy`). Alan adı `wrangler.jsonc` içindeki `routes` ile kendiliğinden bağlanır.
 
