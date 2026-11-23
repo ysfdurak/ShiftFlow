@@ -15,7 +15,7 @@ Bu klasör, ShiftFlow'un veri işleme motorunu **tarayıcıda** çalıştıran d
 | `build_web.py` | Yayın klasörünü (`dist/`) üretir |
 | `dev_server.py` | **Yalnız geliştirme/test.** Aynı köprüyü normal Python'la çalıştırır (`?dev=1`) |
 | `e2e_test.py` | Chrome + Playwright ile uçtan uca test (geliştirme sunucusuyla) |
-| `_headers` | Cloudflare Pages güvenlik başlıkları |
+| `_headers` | Cloudflare Pages güvenlik başlıkları (CSP dahil) |
 
 ## Yayın klasörünü üretme
 
@@ -74,3 +74,9 @@ Bir adım başarısızsa tarayıcı konsolundaki (F12) hata mesajını kaydedin.
 - Adımlar düzenlenemez, yalnız eklenir, kapatılır, taşınır veya silinir.
 - Arayüz Türkçedir. İngilizce sürüm henüz yok; motor mesajları da Türkçe.
 - Masaüstüne özgü özellikler (açık Excel'den okuma, Outlook taslağı, zamanlama, arşiv, gösterge paneli) demoda yoktur; sayfanın "Hakkında" bölümünde belirtilir.
+
+## İçerik güvenlik politikası (CSP)
+
+`_headers` içindeki CSP yalnız siteyi ve Pyodide'nin CDN'ini (cdn.jsdelivr.net) açar; veri dışarı gönderilemez (`connect-src` yalnız bu ikisi, `form-action 'none'`).
+`'unsafe-eval'` ve `'wasm-unsafe-eval'` Pyodide için gerekir: Python yorumlayıcısı WebAssembly olarak derlenir ve paket yüklerken çalışma anında kod üretir. Sayfanın kendi betiklerinde `eval` yoktur.
+Yayımladıktan sonra tarayıcı konsolunda CSP uyarısı olmadığını kontrol et; Pyodide sürümü değişirse aynı kontrolü tekrarla.
