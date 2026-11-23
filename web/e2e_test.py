@@ -1,23 +1,50 @@
-"""Tarayıcı demosunun uçtan uca testi (Chrome + Playwright, geliştirme sunucusuyla).
+"""Tarayıcı demosunun uçtan uca testi (Chrome + Playwright).
 
-Önce:  python web/dev_server.py 8765
-Sonra: python web/e2e_test.py
-Ekran görüntüleri /tmp/shots altına yazılır. Pyodide'nin kendisini test etmez
-(o kısım README_WEB.md'deki yayın sonrası deneme listesiyle kontrol edilir).
+İki kip:
+  Geliştirme sunucusuyla (hızlı, Pyodide yok):
+      python web/dev_server.py 8765   ve   python web/e2e_test.py
+  Yayın klasörüyle, gerçek Pyodide (yayındaki sürümün aynısı):
+      python web/build_web.py && python web/e2e_test.py --pyodide
+      (static_server.py kendiliğinden açılır; _headers başlıkları ve CSP uygulanır)
+
+--pyodide kipinde ayrıca denetlenir: sayfa yalnız kendi adresine istek atar; dosya yükleme
+ve Excel'e aktarma sırasında hiç ağ isteği olmaz (veri tarayıcıdan çıkmaz); CSP ihlali yok.
+Ekran görüntüleri /tmp/shots altına yazılır.
 """
-import asyncio, os, sys
+import asyncio, os, subprocess, sys, time
+PYODIDE = "--pyodide" in sys.argv
+URL = os.environ.get("SHIFTFLOW_URL") or ("http://127.0.0.1:8766/" if PYODIDE else "http://127.0.0.1:8765/?dev=1")
+CHROME = os.environ.get("CHROME", "/usr/bin/google-chrome")
 os.makedirs('/tmp/shots', exist_ok=True)
 from playwright.async_api import async_playwright
 async def main():
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path="/usr/bin/google-chrome", args=["--no-sandbox"])
+        b = await p.chromium.launch(executable_path=CHROME if os.path.exists(CHROME) else None, args=["--no-sandbox"])
         pg = await b.new_page(viewport={"width":1440,"height":900}, accept_downloads=True)
         errs=[]
         pg.on("console", lambda m: errs.append(m.text) if m.type=="error" else None)
-        pg.on("dialog", lambda d: asyncio.ensure_future(d.accept()))
+        diyaloglar = []
+        def diyalog(d):
+            diyaloglar.append(d.message)
+            asyncio.ensure_future(d.accept("2") if d.type == "prompt" else d.accept())
+        pg.on("dialog", diyalog)
         pg.on("pageerror", lambda e: errs.append(str(e)))
-        await pg.goto("http://127.0.0.1:8765/?dev=1")
-        await pg.wait_for_function("window.__sfReady === true", timeout=15000)
+        origin = URL.split("/")[0] + "//" + URL.split("/")[2]
+        istekler = []
+        pg.on("request", lambda r: istekler.append(r.url))
+        t0 = time.time()
+        await pg.goto(URL)
+        # wait_for_function sayfada eval kullanır; sıkı CSP buna izin vermediği için yoklayarak bekle.
+        son = time.time() + (180 if PYODIDE else 15)
+        while not await pg.evaluate("() => window.__sfReady === true"):
+            assert time.time() < son, "sayfa hazır olmadı: " + (await pg.inner_text("body"))[:300]
+            await pg.wait_for_timeout(250)
+        print(f"hazır: {time.time() - t0:.1f} sn, {len(istekler)} istek")
+        if PYODIDE:
+            disari = [u for u in istekler if not u.startswith(origin) and not u.startswith(("data:", "blob:"))]
+            assert not disari, f"dış adrese istek: {disari}"
+            print("başlık:", (await pg.inner_text("header"))[:120].replace("\n", " "))
+        acilis = len(istekler)
         await pg.screenshot(path="/tmp/shots/1_giris.png")
         await pg.click("[data-act=demo]")
         await pg.wait_for_selector(".step")
@@ -83,9 +110,27 @@ async def main():
         await pg.set_input_files("#file2", "/tmp/shots/test.csv"); await pg.wait_for_timeout(800)
         print("upload:", await pg.inner_text("#steps-title"), await pg.inner_text("#preview-count"))
         await pg.screenshot(path="/tmp/shots/6_yukle.png")
+        # çok sayfalı .xlsx: az önce indirilen raporun kendisi
+        await pg.set_input_files("#file2", "/tmp/shots/rapor.xlsx"); await pg.wait_for_timeout(1500)
+        kume = await pg.locator(".ds-list li").all_inner_texts()
+        secim = [m for m in diyaloglar if "Hangi sayfa" in m]
+        print("xlsx:", len(kume), "küme;", await pg.inner_text("#preview-count"), "| sayfa sorusu:", secim[-1].split("\n")[1:3] if secim else None)
+        assert secim and kume[-1].startswith("rapor"), kume
+        if PYODIDE:
+            sonra = [u for u in istekler[acilis:] if not u.startswith(("data:", "blob:"))]
+            assert not sonra, f"işlem sırasında ağ isteği: {sonra}"
+            print("işlem sırasında ağ isteği yok")
         await pg.set_viewport_size({"width":390,"height":844}); await pg.wait_for_timeout(300)
         await pg.screenshot(path="/tmp/shots/7_mobil.png", full_page=True)
         print("ERRORS:", errs)
         assert not errs, errs
         await b.close()
-asyncio.run(main())
+if PYODIDE and not os.environ.get("SHIFTFLOW_URL"):
+    sunucu = subprocess.Popen([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "static_server.py"), "8766"])
+    time.sleep(1)
+    try:
+        asyncio.run(main())
+    finally:
+        sunucu.terminate()
+else:
+    asyncio.run(main())

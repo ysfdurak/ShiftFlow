@@ -1,0 +1,16 @@
+// Cloudflare Workers: tarayıcı demosunu (web/dist) statik site olarak yayınlar.
+// Sunucu kodu yoktur. Cloudflare'de derleme komutu: python3 web/build_web.py
+// (ağ gerektirmez; Pyodide ve tekerlekler depodaki web/vendor klasöründen gelir).
+// main dalına her gönderimde otomatik yayın; diğer dallarda önizleme.
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "shiftflow",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./web/dist"
+  },
+  "previews": {},
+  "routes": [
+    { "pattern": "shiftflow.ysfdurak.com", "custom_domain": true }
+  ]
+}

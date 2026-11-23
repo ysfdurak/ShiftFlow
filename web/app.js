@@ -14,22 +14,22 @@ const nextFrame = () => new Promise((r) => requestAnimationFrame(() => setTimeou
 class PyodideBackend {
   async init(progress) {
     const manifest = await (await fetch("manifest.json", { cache: "no-cache" })).json();
-    const indexURL = `https://cdn.jsdelivr.net/pyodide/v${manifest.pyodide}/full/`;
-    progress("Python (Pyodide) indiriliyor…");
+    // Pyodide ve paketleri bu sitenin pyodide/ klasöründen gelir; dış adrese istek yok.
+    const indexURL = new URL("pyodide/", location.href).href;
+    progress("Python (Pyodide) yükleniyor…");
     await new Promise((resolve, reject) => {
       const s = document.createElement("script");
       s.src = indexURL + "pyodide.js";
       s.onload = resolve;
-      s.onerror = () => reject(new Error("Pyodide indirilemedi. İnternet bağlantınızı veya içerik engelleyicinizi kontrol edin."));
+      s.onerror = () => reject(new Error("Pyodide yüklenemedi. Sayfayı yenileyin; sorun sürerse bağlantınızı kontrol edin."));
       document.head.appendChild(s);
     });
     this.py = await globalThis.loadPyodide({ indexURL });
     progress("pandas ve numpy yükleniyor…");
-    await this.py.loadPackage(["numpy", "pandas", "micropip", "python-dateutil", "pytz"]);
+    await this.py.loadPackage(manifest.packages, { checkIntegrity: true });
     progress("Excel kitaplığı (openpyxl) yükleniyor…");
-    const mp = this.py.pyimport("micropip");
     const wheels = manifest.wheels.map((w) => new URL(w, location.href).href);
-    await mp.install.callKwargs(this.py.toPy(wheels), { deps: false });
+    await this.py.loadPackage(wheels);
     progress("ShiftFlow motoru yükleniyor…");
     const zip = await (await fetch(manifest.engine)).arrayBuffer();
     this.py.unpackArchive(zip, "zip", { extractDir: "/home/pyodide/sf" });

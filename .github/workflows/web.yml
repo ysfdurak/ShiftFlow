@@ -1,0 +1,44 @@
+# Tarayıcı demosu: yayın klasörünü derler ve gerçek Pyodide ile Chrome'da uçtan uca dener.
+name: Tarayıcı demosu
+
+on:
+  push:
+    branches: [main]
+    paths: ["web/**", "shiftflow/**", ".github/workflows/web.yml", "wrangler.jsonc"]
+  pull_request:
+    paths: ["web/**", "shiftflow/**", ".github/workflows/web.yml", "wrangler.jsonc"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Yayın klasörü (ağsız, SHA-256 denetimli)
+        run: python web/build_web.py
+      - name: Playwright ve Chromium
+        run: |
+          pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Uçtan uca test (gerçek Pyodide, sıkı CSP, ağ isteği denetimi)
+        env:
+          CHROME: none
+        run: python web/e2e_test.py --pyodide
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-ekran-goruntuleri
+          path: /tmp/shots/*.png

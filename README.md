@@ -1,6 +1,6 @@
 # ShiftFlow Data Studio 3.10
 
-> **Tarayıcı demosu:** Motorun kurulum gerektirmeyen, tarayıcıda çalışan sürümü `web/` klasöründedir. Yayın adımları: [web/README_WEB.md](web/README_WEB.md).
+> **Tarayıcı demosu:** https://shiftflow.ysfdurak.com/ adresinde kurulumsuz deneyin. Aynı motor tarayıcıda (Pyodide) çalışır; yüklediğiniz dosyalar bilgisayarınızdan çıkmaz. Kaynak ve yayın: [web/README_WEB.md](web/README_WEB.md).
 
 Excel'de her gün elle yapılan rapor hazırlama işlemlerini (temizleme, filtre, hesaplama, birleştirme, pivot, çıktı) **bir kez tanımlayıp** sonraki raporlarda **tek tıkla tekrar çalıştıran** Windows masaüstü uygulaması.
 

@@ -15,7 +15,9 @@ Bu klasör, ShiftFlow'un veri işleme motorunu **tarayıcıda** çalıştıran d
 | `build_web.py` | Yayın klasörünü (`dist/`) üretir |
 | `dev_server.py` | **Yalnız geliştirme/test.** Aynı köprüyü normal Python'la çalıştırır (`?dev=1`) |
 | `e2e_test.py` | Chrome + Playwright ile uçtan uca test (geliştirme sunucusuyla) |
-| `_headers` | Cloudflare Pages güvenlik başlıkları (CSP dahil) |
+| `_headers` | Cloudflare güvenlik başlıkları (CSP dahil) |
+| `static_server.py` | Yayın klasörünü `_headers` ile yerelde sunar (deneme ve e2e) |
+| `vendor/` | Pyodide alt kümesi ve openpyxl tekerlekleri (SHA-256 listeli) |
 
 ## Yayın klasörünü üretme
 
@@ -27,21 +29,22 @@ python web/build_web.py
 
 - `shiftflow_engine.zip`: motorun tarayıcıda kullanılan modülleri + `sfweb.py`. Windows'a özgü veya yerel disk isteyen modüller (WMS taraması, açık Excel, Outlook, kütüphane, arşiv, kurtarma) **dahil edilmez**.
 - `wheels/`: openpyxl ve et_xmlfile (saf Python). Siteden yüklenir, PyPI'ye gidilmez.
-- pandas ve numpy, Pyodide'nin kendi CDN'inden (cdn.jsdelivr.net) gelir. Sürüm `build_web.py` içindeki `PYODIDE_VERSION` ile sabittir.
+- `pyodide/`: Python (Pyodide 314.0.8) ve pandas, numpy, python-dateutil, pytz, six. Depodaki `web/vendor/pyodide` klasöründen kopyalanır; sayfa hiçbir dış adrese (CDN dahil) istek atmaz. Sürüm yükseltme: `web/vendor/pyodide/README.md`.
 
 Motor kodunu değiştirdiğinizde `build_web.py`'yi yeniden çalıştırıp `dist/` klasörünü yeniden yükleyin.
 
-## Cloudflare Pages'e yükleme (sürükle-bırak)
+## Yayın: Cloudflare Workers (shiftflow.ysfdurak.com)
 
-1. Cloudflare panelinde **Workers & Pages → Create application → Pages → Upload assets** (Direct Upload).
-2. Proje adı verin, örneğin `shiftflow-demo`. Adres `shiftflow-demo.pages.dev` olur.
-3. `web/dist` klasörünü (veya içeriğinin zip'ini) sürükleyin → **Deploy site**.
-4. Projede **Custom domains → Set up a custom domain** → örneğin `shiftflow.ysfdurak.com`. Alan adı Cloudflare'de olduğu için DNS kaydı kendiliğinden eklenir.
-5. Güncellemede: projede **Create a new deployment** → yeni `dist` klasörünü yükleyin. Adres değişmez.
+Canlı adres: **https://shiftflow.ysfdurak.com/**. Depo Cloudflare Workers'a bağlıdır; `main` dalına her
+birleştirmede Cloudflare `python3 web/build_web.py` çalıştırıp `web/dist` klasörünü yayınlar
+(`wrangler.jsonc`). Diğer dallar önizleme adresine gider.
 
-**Alt klasör seçeneği:** Siteniz de Cloudflare Pages'teyse `dist` içeriğini sitenin içinde `shiftflow/` klasörüne koyabilirsiniz (`ysfdurak.com/shiftflow/`). Sayfadaki tüm yollar göreli olduğu için iki yöntem de çalışır. Bu durumda `_headers` dosyasını sitenin kökündekiyle birleştirin.
+İlk bağlantı (bir kez): Cloudflare panelinde **Workers & Pages → Create → Import a repository →
+ysfdurak/ShiftFlow**; proje adı `shiftflow`, derleme komutu `python3 web/build_web.py`, dağıtım
+komutu varsayılan (`npx wrangler deploy`). Alan adı `wrangler.jsonc` içindeki `routes` ile kendiliğinden bağlanır.
 
-Sınırlar: sürükle-bırakta en çok 1.000 dosya ve dosya başına 25 MB. Bu demo 9 dosya, en büyüğü yaklaşık 250 KB.
+Derleme ağ gerektirmez: Pyodide, pandas/numpy (`web/vendor/pyodide`) ve openpyxl (`web/vendor/wheels`)
+depodadır ve her derlemede SHA-256 ile denetlenir.
 
 ## Yerelde deneme
 
@@ -51,13 +54,15 @@ python web/dev_server.py 8765
 
 Tarayıcıda `http://127.0.0.1:8765/?dev=1` açın. Bu mod Pyodide'yi **kullanmaz**; aynı `sfweb.py`'yi bilgisayarınızdaki Python'la çalıştırır. Arayüzü ve motoru hızlıca denemek içindir.
 
-Gerçek tarayıcı modunu yerelde denemek için `dist/` klasörünü bir statik sunucuyla açın (`python -m http.server -d web/dist 8000`, sonra `http://127.0.0.1:8000/`). İnternet gerekir (Pyodide CDN'den gelir).
+Gerçek tarayıcı modunu yerelde denemek için `python web/static_server.py 8000` (yayındaki `_headers` başlıklarıyla) ve `http://127.0.0.1:8000/`. İnternet gerekmez.
+
+Gerçek Pyodide ile otomatik uçtan uca test: `python web/build_web.py && python web/e2e_test.py --pyodide`. Aynı test her PR'da GitHub Actions'ta (Tarayıcı demosu) çalışır; dış adrese istek, işlem sırasında ağ isteği, CSP ihlali veya konsol hatası olursa düşer.
 
 ## Yayından sonra ilk deneme listesi
 
-Bu kısım burada test edilemedi: test ortamından Pyodide'nin pandas paketlerine erişilemiyordu. İlk yayında şunları elle kontrol edin.
+Bu listenin 1–7. maddeleri `e2e_test.py --pyodide` ile otomatik denenir (Chrome). Firefox, Safari ve gerçek telefonda elle bakılması iyi olur.
 
-1. Sayfa açılıyor, "Hesaplama motoru yükleniyor" ekranı 10–40 saniyede kapanıyor mu? Başlıkta "motor sürümü 3.10.0" görünüyor mu?
+1. Sayfa açılıyor, "Hesaplama motoru yükleniyor" ekranı 10–40 saniyede kapanıyor mu? Başlıkta "motor sürümü" ve güncel sürüm görünüyor mu?
 2. **Örnek akışı kur** → Bölge özeti açılıyor ve "farklı yazılışlar" uyarısı çıkıyor mu? **Düzelt** sonrası A Blok tek satıra iniyor mu?
 3. **Excel'e aktar** → `ShiftFlow_rapor.xlsx` iniyor, Excel'de 4 sayfa ve "Vardiya verisi" altında toplam satırı (ALTTOPLAM formülü) var mı?
 4. **Kendi dosyanı yükle** ile Türkçe karakterli bir CSV ve çok sayfalı bir .xlsx yüklenebiliyor mu?
@@ -77,6 +82,7 @@ Bir adım başarısızsa tarayıcı konsolundaki (F12) hata mesajını kaydedin.
 
 ## İçerik güvenlik politikası (CSP)
 
-`_headers` içindeki CSP yalnız siteyi ve Pyodide'nin CDN'ini (cdn.jsdelivr.net) açar; veri dışarı gönderilemez (`connect-src` yalnız bu ikisi, `form-action 'none'`).
-`'unsafe-eval'` ve `'wasm-unsafe-eval'` Pyodide için gerekir: Python yorumlayıcısı WebAssembly olarak derlenir ve paket yüklerken çalışma anında kod üretir. Sayfanın kendi betiklerinde `eval` yoktur.
-Yayımladıktan sonra tarayıcı konsolunda CSP uyarısı olmadığını kontrol et; Pyodide sürümü değişirse aynı kontrolü tekrarla.
+`_headers` içindeki CSP yalnız sitenin kendisini açar: `script-src 'self' 'wasm-unsafe-eval'`, `connect-src 'self'`, `form-action 'none'`.
+Veri dışarı gönderilemez; Pyodide de dahil her şey aynı adresten gelir. `'wasm-unsafe-eval'` Python yorumlayıcısının
+WebAssembly olarak derlenmesi için gerekir; `'unsafe-eval'` gerekmez (gerçek Pyodide ile denendi). Pyodide sürümü
+değişirse `e2e_test.py --pyodide` CSP ihlallerini de yakalar.

@@ -1,5 +1,15 @@
 # Değişiklik günlüğü
 
+## Tarayıcı demosu yayını — 2026-11-23
+
+Masaüstü uygulaması değişmedi (3.11.2).
+
+- Demo canlıda: https://shiftflow.ysfdurak.com/ (Cloudflare Workers, `main`'e her birleştirmede yayın).
+- Pyodide 314.0.8, pandas ve numpy artık CDN'den değil sitenin kendisinden yükleniyor (`web/vendor`, SHA-256 denetimli). Sayfa hiçbir dış adrese istek atmıyor; CSP'den `cdn.jsdelivr.net` ve `'unsafe-eval'` çıktı.
+- micropip kaldırıldı; openpyxl tekerlekleri doğrudan yükleniyor. Derleme ağ gerektirmiyor.
+- Gerçek Pyodide ile uçtan uca test (`web/e2e_test.py --pyodide`) ve her PR'da çalışan "Tarayıcı demosu" iş akışı. Test, dış adrese ve işlem sırasındaki ağ isteklerini de denetliyor.
+- HSTS ve Cross-Origin-Opener-Policy başlıkları; Referrer-Policy same-origin.
+
 ## 3.11.2 — 2026-11-23
 
 Denetim bulguları (D12, D16).
