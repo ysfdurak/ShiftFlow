@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
         run: python web/build_web.py
       - name: Playwright ve Chromium
         run: |
-          pip install playwright==1.55.0
+          pip install playwright==1.65.2
           python -m playwright install --with-deps chromium
       - name: Uçtan uca test (gerçek Pyodide, sıkı CSP, ağ isteği denetimi)
         env:
