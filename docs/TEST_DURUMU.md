@@ -39,7 +39,7 @@ Bu belge neyin nerede ve nasıl test edildiğini dürüstçe gösterir. Gerçek 
 | Komut satırı (tek akış, paket, otomatik dönem, Outlook taslağı — **sahte Outlook ile**, asla gönderim yok, hatalı girdiler, kilit), Görev Zamanlayıcı komutları, WMS teşhisi — **sahte pencere ağaçlarıyla** (.NET benzeri uygun, Java adsız uygun değil, veri değerlerinin rapora girmemesi) | Linux | Geçti |
 | Tarayıcı demosu köprüsü (`web/sfweb.py`): örnek akış, farklı yazılış düzeltme, hatalı adımın reddi, durdurma doğrulaması, ertesi gün, geri al, CSV/XLSX yükleme, Excel çıktısı, Windows modülleri olmadan yayın zip'inden içe aktarma | Linux, Python 3.13 | 10 test geçti |
 | Tarayıcı demosu arayüzü uçtan uca: giriş, örnek akış, uyarı ve düzeltme, adım önizleme, hatalı formül, sütun çipleri, filtre, geri al, aç/kapa, ertesi gün, grupla, durdurma, Excel indirme, dosya yükleme, çok sayfalı XLSX, telefon görünümü | Gerçek Chrome + Playwright, **geliştirme sunucusuyla** (Pyodide yerine aynı köprü normal Python'da) | Geçti; konsolda hata yok |
-| Pyodide 314.0.7 çekirdeği (Python 3.14.2): motor zip'ini açma, sanal diske dosya yazma/okuma, tüm motor dosyalarının Python 3.14'te ayrıştırılması | Node.js | Geçti |
+| Tarayıcı demosu, **gerçek Pyodide 314.0.8** (yayın klasörü, `_headers` ve sıkı CSP ile): açılış (~7 sn), örnek akış, düzeltme, hatalı formül, filtre, geri al, ertesi gün, grupla, durdurma, Excel indirme (5 sayfa, ALTTOPLAM), Türkçe CSV, çok sayfalı XLSX (sayfa seçimi), telefon görünümü; dış adrese istek yok, yükleme/aktarma sırasında ağ isteği yok | Chrome + Playwright (`e2e_test.py --pyodide`), her PR'da GitHub Actions | Geçti; konsol hatası ve CSP ihlali yok |
 | PyInstaller paketi | Linux | Paket oluştu ve açıldı (Windows paketi değil) |
 
 Testi yapılan özel durumlar: eksik sütun, tekrar eden anahtar, çoktan-çoğa onayı, boş anahtar, anahtar tipi farkı (1 / "1"), hiç eşleşmeme, aynı adlı sütun çakışması, sıfıra bölme, boş tablo, tip uyuşmazlığı, Türkçe sayı biçimi, cp1254 ve `;` ayırıcılı CSV, başında sıfır olan kodlar, tekrar eden veya boş başlıklar, pandas NA değerleri, kaynak dosyanın değişmediği (dosya özeti karşılaştırması), kaynak dosyanın üzerine yazmayı reddetme, döngüsel bağımlılık, bozuk veya yabancı JSON, daha yeni sürümlü JSON.
@@ -61,7 +61,7 @@ Testi yapılan özel durumlar: eksik sütun, tekrar eden anahtar, çoktan-çoğa
 - **Windows .exe:** Burada üretilemedi. `exe_olustur.bat` veya GitHub Actions ile üretilecek. Actions akışı testleri Windows'ta çalıştırır ve .exe'nin açılıp çökmediğini kontrol eder; bu da elle kullanım testinin yerini tutmaz.
 - **Gerçek WMS raporları:** Yalnız sentetik raporlarla denendi. Birleştirilmiş hücreli, üstte başlık bloğu olan veya birden çok tablolu sayfalar henüz desteklenmiyor.
 - **.xls (eski Excel):** Kod destekliyor ancak test edilmedi.
-- **Tarayıcı demosunun gerçek Pyodide ile çalışması:** Test ortamından Pyodide'nin pandas/numpy paketlerine (CDN) erişilemedi. Arayüz ve köprü aynı kodla normal Python'da test edildi; pandas'ın tarayıcıda yüklenmesi, openpyxl tekerleklerinin kurulması ve Excel indirmesi yayından sonra `web/README_WEB.md` listesiyle denenmeli.
+- **Tarayıcı demosu Firefox/Safari'de ve gerçek telefonda:** Otomatik test yalnız Chrome'da; diğer tarayıcılarda elle bakılmalı.
 
 ## Bilinen sınırlar
 
