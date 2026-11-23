@@ -27,10 +27,13 @@ def _parse_number_text(text: str):
     percent = t.endswith("%") or t.startswith("%")
     t = t.strip("%")
     if "," in t and "." in t:
-        if t.rfind(",") > t.rfind("."):
-            t = t.replace(".", "").replace(",", ".")
-        else:
-            t = t.replace(",", "")
+        # Ondalık ayırıcı sondaki işarettir; önündeki kısım ya düz rakam ya da
+        # düzgün üçlü gruplar olmalı ("1.2.34,56" gibi bozuk gruplama sayı sayılmaz).
+        dec, grp = (",", ".") if t.rfind(",") > t.rfind(".") else (".", ",")
+        whole, _, frac = t.rpartition(dec)
+        if dec in whole or not re.fullmatch(r"[+-]?\d{1,3}(" + re.escape(grp) + r"\d{3})+", whole) or (frac and not frac.isdigit()):
+            return None
+        t = whole.replace(grp, "") + "." + frac
     elif "," in t:
         if t.count(",") > 1:
             if not re.fullmatch(r"[+-]?\d{1,3}(,\d{3})+", t):
@@ -123,6 +126,10 @@ def infer_types(df: pd.DataFrame, min_ratio: float = 1.0) -> pd.DataFrame:
                 out[col] = parsed
                 continue
         if sample.astype(str).str.strip().str.match(r"^0\d+$").any():
+            continue
+        # 16+ haneli tam sayılar (barkod, seri no, IBAN parçası) sayıya çevrilince
+        # son haneleri yuvarlanır ve farklı kodlar aynı değere düşer: metin kalır.
+        if filled.astype(str).str.strip().str.match(r"^[+-]?\d{16,}$").any():
             continue
         _, bad_sample = to_number(sample)
         if bad_sample and not sample.astype(str).str.strip().str.match(r"^\d{1,4}[./-]\d{1,2}[./-]\d{1,4}").all():
