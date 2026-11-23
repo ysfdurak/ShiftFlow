@@ -1,5 +1,12 @@
 # Değişiklik günlüğü
 
+## 3.11.2 — 2026-11-23
+
+Denetim bulguları (D12, D16).
+
+- 16 ve daha uzun haneli kodlar (barkod, seri no) CSV'den ve açık Excel'den metin olarak okunur. Önceden sayıya çevriliyor, son hanesi farklı kodlar aynı değere düşüyordu.
+- "1.2.34,56" gibi bozuk binlik gruplama artık 1.234,56 sayılmaz; sütun metin kalır, kaynak değer olduğu gibi görünür. Düzgün "1.234,56", "1,234.56", "1.234.567,89" eskisi gibi sayıdır.
+
 ## 3.11.1 — 2026-11-22
 
 GitHub deposu açıldı; Windows CI'ın ilk çalışmasında çıkanlar düzeltildi.

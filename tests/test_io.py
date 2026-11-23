@@ -76,3 +76,27 @@ def test_text_dates_with_leading_zero_become_dates():
     df = sio.parse_text_table("Tarih\tKod\n01.11.2026\t00123\n02.11.2026\t00456\n")
     assert pd.api.types.is_datetime64_any_dtype(df["Tarih"])
     assert df["Kod"].tolist() == ["00123", "00456"]
+
+
+def test_uzun_kod_metin_kalir_ve_ayri_kalir(tmp_path):
+    """Denetim D12: 16+ haneli kodlar sayıya çevrilip birbirine karışmamalı."""
+    from shiftflow.engine.io import frame_from_rows, read_csv
+
+    p = tmp_path / "kod.csv"
+    p.write_text("kod;adet\n12345678901234567891;1\n12345678901234567892;2\n", encoding="utf-8")
+    df = read_csv(str(p))
+    assert df["kod"].tolist() == ["12345678901234567891", "12345678901234567892"]
+    rows = [["kod"], ["9007199254740993"], ["9007199254740992"]]
+    df2 = frame_from_rows(rows)
+    assert df2["kod"].nunique() == 2
+
+
+def test_bozuk_binlik_gruplama_sayi_sayilmaz():
+    """Denetim D16: '1.2.34,56' 1234,56 diye okunmamalı."""
+    import pandas as pd
+    from shiftflow.engine.values import _parse_number_text as P, infer_types
+
+    assert P("1.2.34,56") is None and P("1,2,34.56") is None and P("12.34.567,8") is None
+    assert P("1.234,56") == 1234.56 and P("1,234.56") == 1234.56 and P("1.234.567,89") == 1234567.89
+    df = infer_types(pd.DataFrame({"t": ["1.234,50", "1.2.34,56"]}, dtype=object))
+    assert df["t"].tolist() == ["1.234,50", "1.2.34,56"]  # kaynak değer görünür kalır
