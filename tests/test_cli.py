@@ -105,6 +105,11 @@ def test_schtasks_commands_and_dialog(qtbot, tmp_path, monkeypatch):
     assert '/ST 08:15' in cmds[0] and '/ST 00:15' in cmds[1]
     assert '/TN "ShiftFlow - Vardiya sonu - Gece"' in cmds[0]
     assert '--paket \\"C:\\Rapor\\Vardiya sonu.sfpaket.json\\" --donem otomatik --mail outlook' in cmds[0]
+    # Kabuk yok: tehlikeli karakterli vardiya/dosya adı tek argüman olarak kalır, komut olarak yorumlanmaz.
+    kotu = ad.schtasks_args("C:\\R\\a.json", "akis", [{"name": 'G" & calc & "', "start": "00:00", "end": "08:00"}],
+                            0, "outlook & calc", 'x" | del')
+    assert kotu[0][:7] == ["schtasks", "/Create", "/F", "/SC", "DAILY", "/TN", 'ShiftFlow - x" | del - G" & calc & "']
+    assert len(kotu[0]) == 11 and kotu[0][-1].endswith("--mail yok")
     from PySide6.QtWidgets import QMessageBox
     from shiftflow.engine.library import ReportLibrary
     from shiftflow.ui.main_window import MainWindow

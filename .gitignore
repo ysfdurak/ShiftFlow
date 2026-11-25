@@ -19,3 +19,8 @@ web/dist/
 # Sentetik örnek veri ("Örnekle dene" ve exe paketi için gerekli)
 !ornekler/veri/toplama_raporu_gun1.xlsx
 !ornekler/veri/personel_listesi.xlsx
+
+# Gizli ayarlar (SMTP parolası vb.) depoya girmez
+.env
+.env.*
+!.env.example
