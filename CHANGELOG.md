@@ -1,5 +1,11 @@
 # Değişiklik günlüğü
 
+## Tarayıcı demosu: canonical — 2026-11-25
+
+Masaüstü uygulaması değişmedi.
+
+- Demo sayfasına `canonical` ve `og:url` (https://shiftflow.ysfdurak.com/) eklendi. Google aynı sayfanın parametreli adreslerini tek adreste toplar.
+
 ## Tarayıcı demosu yayını — 2026-11-23
 
 Masaüstü uygulaması değişmedi (3.11.2).
