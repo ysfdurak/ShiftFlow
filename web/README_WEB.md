@@ -43,6 +43,8 @@ birleştirmede Cloudflare `python3 web/build_web.py` çalıştırıp `web/dist` 
 ysfdurak/ShiftFlow**; proje adı `shiftflow`, derleme komutu `python3 web/build_web.py`, dağıtım
 komutu varsayılan (`npx wrangler deploy`). Alan adı `wrangler.jsonc` içindeki `routes` ile kendiliğinden bağlanır.
 
+**Yayın gelmiyorsa:** Cloudflare'in GitHub uygulamasının (Cloudflare Workers and Pages) bu depoya erişimi olmalı. 25 Kasım 2026'da canonical değişikliği birleştiği hâlde yayın gelmedi: uygulama yalnız seçili depolara yetkiliydi. GitHub → Settings → Applications → Cloudflare Workers and Pages → *All repositories* ile düzeltildi. Yetki sonradan verilirse kaçırılan gönderim kendiliğinden derlenmez; yeni bir birleştirme ya da panelde elle yeniden dağıtım gerekir. Belirti: PR'larda "Workers Builds" denetimi hiç görünmez.
+
 Derleme ağ gerektirmez: Pyodide, pandas/numpy (`web/vendor/pyodide`) ve openpyxl (`web/vendor/wheels`)
 depodadır ve her derlemede SHA-256 ile denetlenir.
 
