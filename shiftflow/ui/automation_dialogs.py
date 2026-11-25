@@ -124,17 +124,30 @@ def launcher_command() -> str:
     return f'"{exe}" "{main}"'
 
 
-def schtasks_commands(target: str, kind: str, shifts: list[dict], offset_min: int, mail: str, name: str) -> list[str]:
-    """Her vardiya bitişinden offset dakika sonra çalışan günlük görevler için schtasks komutları."""
+def schtasks_args(target: str, kind: str, shifts: list[dict], offset_min: int, mail: str, name: str) -> list[list[str]]:
+    """Her vardiya bitişinden offset dakika sonra çalışan günlük görevler: schtasks argüman listeleri.
+
+    Liste olarak çalıştırılır (kabuk yok): dosya ya da vardiya adındaki `"`, `&`, `|` gibi karakterler
+    komut olarak yorumlanamaz, yalnız tek bir argümanın parçası olur."""
     from datetime import datetime, timedelta
-    out = []
     flag = "--paket" if kind == "paket" else "--akis"
+    if mail not in ("outlook", "eml", "yok"):
+        mail = "yok"
     run = f'{launcher_command()} {flag} "{target}" --donem otomatik --mail {mail}'
-    tr = run.replace('"', '\\"')
+    out = []
     for sh in shifts:
         end = datetime.strptime(sh["end"], "%H:%M") + timedelta(minutes=offset_min)
         tn = f"ShiftFlow - {name} - {sh['name']}"
-        out.append(f'schtasks /Create /F /SC DAILY /TN "{tn}" /ST {end:%H:%M} /TR "{tr}"')
+        out.append(["schtasks", "/Create", "/F", "/SC", "DAILY", "/TN", tn, "/ST", f"{end:%H:%M}", "/TR", run])
+    return out
+
+
+def schtasks_commands(target: str, kind: str, shifts: list[dict], offset_min: int, mail: str, name: str) -> list[str]:
+    """Kullanıcıya gösterilen (kopyalanabilir) komut satırları; çalıştırma schtasks_args ile yapılır."""
+    out = []
+    for a in schtasks_args(target, kind, shifts, offset_min, mail, name):
+        tr = a[-1].replace('"', '\\"')
+        out.append(f'schtasks /Create /F /SC DAILY /TN "{a[6]}" /ST {a[8]} /TR "{tr}"')
     return out
 
 
@@ -217,6 +230,14 @@ class ScheduleDialog(QDialog):
         return schtasks_commands(os.path.abspath(t), self.kind(), self.window_.session.shifts, self.offset.value(),
                                  self.mail.currentData(), name)
 
+    def command_args(self) -> list[list[str]]:
+        t = self.target.text().strip()
+        if not t:
+            return []
+        name = os.path.basename(t).replace(".sfpaket.json", "").replace(".json", "")
+        return schtasks_args(os.path.abspath(t), self.kind(), self.window_.session.shifts, self.offset.value(),
+                             self.mail.currentData(), name)
+
     def update_cmds(self):
         self.cmds.setPlainText("\n".join(self.commands()))
 
@@ -242,12 +263,12 @@ class ScheduleDialog(QDialog):
     def create(self):
         import subprocess
         from PySide6.QtWidgets import QMessageBox
-        cmds = self.commands()
+        cmds = self.command_args()
         if not cmds or QMessageBox.question(self, "Görevleri oluştur", f"{len(cmds)} zamanlanmış görev oluşturulsun mu? "
                                             "(Aynı adlı görevler güncellenir.)") != QMessageBox.Yes:
             return
         out = []
         for c in cmds:
-            r = subprocess.run(c, shell=True, capture_output=True, text=True)  # noqa: S602 - komut bizim ürettiğimiz
+            r = subprocess.run(c, capture_output=True, text=True)  # liste: kabuk yok
             out.append(("✓ " if r.returncode == 0 else "✖ ") + (r.stdout or r.stderr).strip())
         set_status(self.status, "\n".join(out), "ok" if all(x.startswith("✓") for x in out) else "err")

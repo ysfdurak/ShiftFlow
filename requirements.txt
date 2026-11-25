@@ -1,9 +1,10 @@
-# Çalışma için gerekenler
-PySide6-Essentials>=6.6,<7
-pandas>=2.2,<4
-openpyxl>=3.1
-python-calamine>=0.2
+# Çalışma için gerekenler. Sürümler sabit (son başarılı Windows derlemesindeki sürümler);
+# Dependabot haftalık güncelleme önerir, CI geçerse birleştirilir.
+PySide6-Essentials==6.12.0
+pandas==3.1.1
+openpyxl==3.1.5
+python-calamine==0.9.1
 # Açık Excel kitaplarına erişim (yalnız Windows)
-pywin32>=306; sys_platform == "win32"
+pywin32==312; sys_platform == "win32"
 # WMS ekran teşhisi / otomasyonu (yalnız Windows; yalnız okur)
-pywinauto>=0.6.8; sys_platform == "win32"
+pywinauto==0.6.9; sys_platform == "win32"

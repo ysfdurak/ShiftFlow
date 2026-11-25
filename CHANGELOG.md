@@ -1,5 +1,11 @@
 # Değişiklik günlüğü
 
+## Güvenlik taraması bulguları — 2026-11-25
+
+- **Zamanlanmış görev oluşturma kabuk kullanmıyor.** `schtasks` artık argüman listesiyle çalıştırılıyor (`shell=True` kaldırıldı). Önceden dosya ya da vardiya adındaki `"` ve `&` gibi karakterler komut olarak yorumlanabilirdi; şimdi tek bir argümanın parçası kalıyor. Gösterilen (kopyalanabilir) komut metni aynı. Test: tehlikeli karakterli vardiya adı tek argüman kalıyor.
+- **Bağımlılık sürümleri sabit** (`==`, son başarılı Windows derlemesindeki sürümler). Dependabot haftalık güncelleme önerir.
+- `.gitignore` `.env` dosyalarını dışarıda tutuyor.
+
 ## Tarayıcı demosu: canonical — 2026-11-25
 
 Masaüstü uygulaması değişmedi.
